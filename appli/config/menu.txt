@@ -8,6 +8,7 @@ B;button_histo_analysis;histo;
 B;button_quant_samp;quant_samp;
 S;;;
 B;button_tools;image_tools;
+B;button_fft;fft;
 S;;;
 B;button_pre_proc;pre_proc;
 B;button_filters;filters;
