@@ -110,8 +110,15 @@ class HistoSpaceOptionsWidget(QWidget):
         self.snap_button = QPushButton(translate('button_acquire_histo'))
         self.snap_button.setStyleSheet(styleH2)
         self.snap_button.setStyleSheet(unactived_button)
-        self.snap_button.setFixedHeight(OPTIONS_BUTTON_HEIGHT)
+        self.snap_button.setFixedHeight(BUTTON_HEIGHT)
         self.snap_button.clicked.connect(self.clicked_action)
+
+        self.show_button = QPushButton(translate('button_show_histo'))
+        self.show_button.setStyleSheet(styleH2)
+        self.show_button.setStyleSheet(unactived_button)
+        self.show_button.setFixedHeight(OPTIONS_BUTTON_HEIGHT)
+        self.show_button.clicked.connect(self.clicked_action)
+        self.show_button.setEnabled(False)
 
         self.save_png_image_button = QPushButton(translate('button_save_png_image_spatial'))
         self.save_png_image_button.setStyleSheet(styleH2)
@@ -122,6 +129,8 @@ class HistoSpaceOptionsWidget(QWidget):
 
         self.layout.addWidget(self.label_title_spatial_analysis)
         self.layout.addWidget(self.snap_button)
+        self.layout.addStretch()
+        self.layout.addWidget(self.show_button)
         self.layout.addStretch()
         self.layout.addWidget(self.save_png_image_button)
 
@@ -134,8 +143,13 @@ class HistoSpaceOptionsWidget(QWidget):
             self.snap_clicked.emit('snap')
             self.save_png_image_button.setStyleSheet(unactived_button)
             self.save_png_image_button.setEnabled(True)
+            self.show_button.setStyleSheet(unactived_button)
+            self.show_button.setEnabled(True)
         elif sender == self.save_png_image_button:
             self.snap_clicked.emit('save_png')
+        elif sender == self.show_button:
+            self.snap_clicked.emit('show_histo')
+
 
 class HistoTimeOptionsWidget(QWidget):
 

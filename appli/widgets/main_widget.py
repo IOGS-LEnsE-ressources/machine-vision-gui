@@ -278,7 +278,7 @@ class MenuWidget(QWidget):
                                                             title=f'sub_menu_{self.buttons_signal[i]}',
                                                             sub=True)
                     self.parent.submenu_widget.menu_clicked.connect(self.submenu_is_clicked)
-                    file_name = f'./config/{self.buttons_signal[i]}_menu.txt'
+                    file_name = f'./menu/{self.buttons_signal[i]}_menu.txt'
                     load_menu(file_name, self.parent.submenu_widget)
                     self.parent.set_sub_menu_widget(self.parent.submenu_widget)
                     self.parent.submenu_widget.display_layout()
@@ -483,6 +483,7 @@ class MainWidget(QWidget):
         if 'framerate' in self.default_parameters:
             self.parent.camera.set_frame_rate(int(self.default_parameters['framerate']))
         if 'colormode' in self.default_parameters:
+            print(f'Color mode = {self.default_parameters["colormode"]}')
             self.parent.camera.set_color_mode(self.default_parameters['colormode'])
         camera = self.parent.camera
         print(f'Expo = {camera.get_exposure()}')

@@ -20,6 +20,7 @@ Modification : oct/2024
 import cv2
 import numpy as np
 from lensepy.images.conversion import quantize_image
+from matplotlib import pyplot as plt
 
 from widgets.main_widget import *
 from lensecam.camera_thread import CameraThread
@@ -61,7 +62,7 @@ class MainWindow(QMainWindow):
         # GUI structure
         self.central_widget = MainWidget(self)
         self.setCentralWidget(self.central_widget)
-        load_menu('./config/menu.txt', self.central_widget.main_menu)
+        load_menu('menu/menu.txt', self.central_widget.main_menu)
         if self.central_widget.auto_connect_camera():
             self.main_action('images')
         self.central_widget.main_signal.connect(self.main_action)
@@ -182,8 +183,7 @@ class MainWindow(QMainWindow):
                 self.image = self.image.astype(np.uint8)
             else:
                 self.raw_image = image_array.view(np.uint8)
-                self.image = self.raw_image
-
+                self.image = self.raw_image.astype(np.uint8)
         self.central_widget.top_left_widget.set_image_from_array(self.image)
 
         if self.central_widget.mode == 'images':
@@ -331,7 +331,7 @@ class MainWindow(QMainWindow):
         """Action performed when an event occurred in the histo_space options widget."""
         image = get_aoi_array(self.raw_image, self.aoi)
         if event == 'snap':
-            self.saved_image = self.raw_image
+            self.saved_image = self.raw_image.copy()
             self.central_widget.top_right_widget.set_image(image)
             self.central_widget.top_right_widget.update_info()
         elif event == 'live':
@@ -345,6 +345,14 @@ class MainWindow(QMainWindow):
                 save_hist(image, hist_data, bins,
                                f'Image Histogram',
                                f'image_histo.png')
+        elif event == 'show_histo':
+            if self.saved_image is not None:
+                image = get_aoi_array(self.saved_image, self.aoi)
+                bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth + 1)
+                bins, hist_data = process_hist_from_array(image, bins)
+                plt.figure()
+                plt.bar(bins[:-1], hist_data, align = 'edge', width=1)
+                plt.show()
         # Display the AOI.
         self.central_widget.update_image(aoi=True)
 
@@ -420,7 +428,6 @@ class MainWindow(QMainWindow):
     def action_enhance_contrast(self, event):
         """Action performed when an event occurred in the erosion/dilation options widget."""
         aoi_array = get_aoi_array(self.image, self.aoi)
-        print(f'Shape = {self.image.shape}')
         delta_image_depth = (self.image_bits_depth - 8)  # Power of 2 for depth conversion
         min_value = int(self.central_widget.options_widget.get_min() // 2**delta_image_depth)
         max_value = int(self.central_widget.options_widget.get_max() // 2**delta_image_depth)
