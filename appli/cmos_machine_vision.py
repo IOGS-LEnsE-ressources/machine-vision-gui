@@ -23,6 +23,7 @@ from lensepy.images.conversion import quantize_image
 from matplotlib import pyplot as plt
 
 from widgets.main_widget import *
+from widgets.aoi_select_widget import get_aoi_array
 from lensecam.camera_thread import CameraThread
 from lensecam.ids.camera_ids import get_bits_per_pixel
 from PyQt6.QtWidgets import QMainWindow, QApplication
@@ -48,6 +49,7 @@ class MainWindow(QMainWindow):
         self.saved_image = None
         self.aoi = None
         self.fast_mode = False
+        self.zoom_histo_enabled = False
         self.image_bits_depth = 8
         # Displayed image
         self.check_diff = False
@@ -176,25 +178,32 @@ class MainWindow(QMainWindow):
             self.central_widget.options_widget.options_changed.connect(self.action_filter_smooth)
 
     def thread_update_image(self, image_array):
+        """Action performed each time a new image is acquired."""
         if image_array is not None:
             if self.image_bits_depth > 8:
                 self.raw_image = image_array.view(np.uint16)
                 self.image = self.raw_image >> (self.image_bits_depth-8)
-                self.image = self.image.astype(np.uint8)
+                self.image = self.image.astype(np.uint8).squeeze()
             else:
                 self.raw_image = image_array.view(np.uint8)
-                self.image = self.raw_image.astype(np.uint8)
-        self.central_widget.top_left_widget.set_image_from_array(self.image)
+                self.image = self.raw_image.astype(np.uint8).squeeze()
 
+        self.central_widget.top_left_widget.set_image_from_array(self.image)
+        self.update_widgets()
+
+    def update_widgets(self):
+        """Update widgets display after an image acquisition."""
         if self.central_widget.mode == 'images':
             if self.camera is not None:
                 # Histogram of the global image.
                 self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
-                self.central_widget.top_right_widget.set_image(self.raw_image, fast_mode=self.fast_mode)
+                self.central_widget.top_right_widget.set_image(self.raw_image,
+                                                               fast_mode=self.fast_mode)
                 self.central_widget.top_right_widget.update_info()
 
         elif self.central_widget.mode == 'aoi_select':
             self.action_aoi_selected('aoi_selected')
+
         elif self.central_widget.mode == 'histo':
             self.action_histo_space('live')
         elif self.central_widget.mode == 'histo_space':
@@ -330,29 +339,33 @@ class MainWindow(QMainWindow):
     def action_histo_space(self, event):
         """Action performed when an event occurred in the histo_space options widget."""
         image = get_aoi_array(self.raw_image, self.aoi)
+        print(self.zoom_histo_enabled)
         if event == 'snap':
             self.saved_image = self.raw_image.copy()
-            self.central_widget.top_right_widget.set_image(image)
+            self.central_widget.top_right_widget.set_image(image,
+                                                           zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'live':
-            self.central_widget.top_right_widget.set_image(image, self.fast_mode)
+            self.central_widget.top_right_widget.set_image(image, self.fast_mode,
+                                                           zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'save_png':
             if self.saved_image is not None:
                 image = get_aoi_array(self.saved_image, self.aoi)
                 bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth+1)
                 bins, hist_data = process_hist_from_array(image, bins)
+                # ZOOM TO TEST !!
                 save_hist(image, hist_data, bins,
                                f'Image Histogram',
                                f'image_histo.png')
-        elif event == 'show_histo':
+        elif 'zoom_histo' in event:
+            print('Zoom OK')
             if self.saved_image is not None:
-                image = get_aoi_array(self.saved_image, self.aoi)
-                bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth + 1)
-                bins, hist_data = process_hist_from_array(image, bins)
-                plt.figure()
-                plt.bar(bins[:-1], hist_data, align = 'edge', width=1)
-                plt.show()
+                if 'True' in event:
+                    self.zoom_histo_enabled = True
+                else:
+                    self.zoom_histo_enabled = False
+
         # Display the AOI.
         self.central_widget.update_image(aoi=True)
 
@@ -572,6 +585,7 @@ class MainWindow(QMainWindow):
                     self.camera_thread.stop(timeout=False)
                 else:
                     self.camera_thread.stop()
+                self.camera.stop_acquisition()
                 self.camera.disconnect()
             event.accept()
         else:

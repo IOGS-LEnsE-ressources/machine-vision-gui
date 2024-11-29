@@ -145,12 +145,10 @@ class ExpoSliderWidget(QWidget):
         """Action performed when the expo slider is checked."""
         self.enabled = not self.enabled
         self.__set_enabled(self.enabled)
-        print('slider_expo_changed')
 
     def action_slider_changed(self):
         """Action performed when the expo slider changed."""
         self.expo_changed.emit('slider')
-        print('slider_expo_changed')
 
     def get_value(self):
         """Return the value of the slider."""
@@ -478,6 +476,7 @@ class MainWidget(QWidget):
         if 'exposure' in self.default_parameters:
             self.parent.camera.set_exposure(int(self.default_parameters['exposure']))
             self.main_menu.expo_widget.set_value(int(self.default_parameters['exposure'])/1000)
+            self.parent.camera_thread.set_timer_value(int(self.default_parameters['exposure'])/1000)
         if 'blacklevel' in self.default_parameters:
             self.parent.camera.set_black_level(int(self.default_parameters['blacklevel']))
         if 'framerate' in self.default_parameters:
@@ -578,15 +577,14 @@ class MainWidget(QWidget):
         """
         if aoi:
             image = get_aoi_array(self.parent.image, self.parent.aoi)
-            image = zoom_array(image, self.zoom_factor)
+            #image = zoom_array(image, self.zoom_factor)
             #print(f'Z = {self.zoom_factor}')
             self.top_left_widget.set_image_from_array(image, aoi)
+        elif aoi_disp:
+            image = display_aoi(self.parent.image, self.parent.aoi)
+            self.top_left_widget.set_image_from_array(image)
         else:
-            if aoi_disp:
-                image = display_aoi(self.parent.image, self.parent.aoi)
-                self.top_left_widget.set_image_from_array(image)
-            else:
-                self.top_left_widget.set_image_from_array(self.parent.raw_image)
+            self.top_left_widget.set_image_from_array(self.parent.raw_image)
 
     def menu_action(self, event):
         """
@@ -777,7 +775,6 @@ class MainWidget(QWidget):
             self.set_top_right_widget(self.top_right_widget)
             self.start_double_histo_widget(name1=translate('histo_original_image'),
                                            name2=translate('histo_contr_bright_image'))
-            print('Enhance OK')
 
         elif self.mode == 'erosion_dilation':
             self.update_image(aoi=True)
@@ -855,6 +852,7 @@ class MainWidget(QWidget):
     def action_expo_changed(self, event):
         """Action performed when the exposure value in the main menu slider changed."""
         expo_value = self.main_menu.get_expo_value()*1000
+        self.parent.camera_thread.set_timer_value(expo_value / 1000)
         self.parent.camera.set_exposure(expo_value)
 
 

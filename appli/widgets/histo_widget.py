@@ -14,7 +14,7 @@ import sys, os
 import numpy as np
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QComboBox, QPushButton, QLineEdit, QProgressBar,
+    QLabel, QComboBox, QPushButton, QLineEdit, QProgressBar, QCheckBox,
     QMessageBox, QFileDialog
 )
 from PyQt6.QtCore import pyqtSignal, QDir
@@ -86,6 +86,7 @@ def rand_pixels(aoi: list) -> (list, list):
         image_y.append(np.random.randint(y, y+w))
     return image_x, image_y
 
+
 class HistoSpaceOptionsWidget(QWidget):
     """
     Options widget of the histo space menu.
@@ -113,12 +114,8 @@ class HistoSpaceOptionsWidget(QWidget):
         self.snap_button.setFixedHeight(BUTTON_HEIGHT)
         self.snap_button.clicked.connect(self.clicked_action)
 
-        self.show_button = QPushButton(translate('button_show_histo'))
-        self.show_button.setStyleSheet(styleH2)
-        self.show_button.setStyleSheet(unactived_button)
-        self.show_button.setFixedHeight(OPTIONS_BUTTON_HEIGHT)
-        self.show_button.clicked.connect(self.clicked_action)
-        self.show_button.setEnabled(False)
+        self.zoom_check = QCheckBox(translate('button_zoom_histo'))
+        self.zoom_check.stateChanged.connect(self.clicked_action)
 
         self.save_png_image_button = QPushButton(translate('button_save_png_image_spatial'))
         self.save_png_image_button.setStyleSheet(styleH2)
@@ -129,8 +126,7 @@ class HistoSpaceOptionsWidget(QWidget):
 
         self.layout.addWidget(self.label_title_spatial_analysis)
         self.layout.addWidget(self.snap_button)
-        self.layout.addStretch()
-        self.layout.addWidget(self.show_button)
+        self.layout.addWidget(self.zoom_check)
         self.layout.addStretch()
         self.layout.addWidget(self.save_png_image_button)
 
@@ -143,12 +139,11 @@ class HistoSpaceOptionsWidget(QWidget):
             self.snap_clicked.emit('snap')
             self.save_png_image_button.setStyleSheet(unactived_button)
             self.save_png_image_button.setEnabled(True)
-            self.show_button.setStyleSheet(unactived_button)
-            self.show_button.setEnabled(True)
         elif sender == self.save_png_image_button:
             self.snap_clicked.emit('save_png')
-        elif sender == self.show_button:
-            self.snap_clicked.emit('show_histo')
+        elif sender == self.zoom_check:
+            is_checked = self.zoom_check.isChecked()
+            self.snap_clicked.emit(f'zoom_histo:{is_checked}')
 
 
 class HistoTimeOptionsWidget(QWidget):
@@ -193,7 +188,6 @@ class HistoTimeOptionsWidget(QWidget):
         self.start_button.clicked.connect(self.clicked_action)
 
         self.progress_bar = QProgressBar(self, objectName="IOGSProgressBar")
-
 
         self.save_histo_button = QPushButton(translate('button_save_histo_spatial'))
         self.save_histo_button.setStyleSheet(styleH2)
