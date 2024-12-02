@@ -4,7 +4,7 @@
 language;FR
 languages;FR,EN
 autoconnect;Yes
-brandname;Basler
+brandname;IDS
 clock_freq;15
 exposure;40000
 blacklevel;0
