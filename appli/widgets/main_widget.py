@@ -476,7 +476,7 @@ class MainWidget(QWidget):
         if 'exposure' in self.default_parameters:
             self.parent.camera.set_exposure(int(self.default_parameters['exposure']))
             self.main_menu.expo_widget.set_value(int(self.default_parameters['exposure'])/1000)
-            self.parent.camera_thread.set_timer_value(int(self.default_parameters['exposure'])/1000)
+            #self.parent.camera_thread.set_timer_value(int(self.default_parameters['exposure'])/1000)
         if 'blacklevel' in self.default_parameters:
             self.parent.camera.set_black_level(int(self.default_parameters['blacklevel']))
         if 'framerate' in self.default_parameters:
