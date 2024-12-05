@@ -236,8 +236,6 @@ class CameraSettingsWidget(QWidget):
         # Settings
         # --------
         self.slider_exposure_time = SliderBloc(name='name_slider_exposure_time', unit='ms', min_value=0, max_value=10)
-        self.slider_exposure_time.slider_changed.connect(self.slider_exposure_time_changing)
-
         self.slider_black_level = SliderBloc(name='name_slider_black_level', unit='gray',
                                               min_value=0, max_value=255, integer=True)
         self.slider_black_level.slider_changed.connect(self.slider_black_level_changing)
@@ -253,6 +251,7 @@ class CameraSettingsWidget(QWidget):
         """Action performed when the exposure time slider changed."""
         if self.camera is not None:
             exposure_time_value = self.slider_exposure_time.get_value() * 1000
+            self.parent.camera_exposure = exposure_time_value
             self.camera.set_exposure(exposure_time_value)
             self.settings_changed.emit('camera_settings_changed')
         else:
@@ -267,7 +266,7 @@ class CameraSettingsWidget(QWidget):
         else:
             print('No Camera Connected')
 
-    def update_parameters(self, auto_min_max: bool = False) -> None:
+    def update_parameters(self, auto_min_max: bool = False, expo_value: float = -1) -> None:
         """Update displayed parameters values, from the camera.
 
         """
@@ -277,13 +276,26 @@ class CameraSettingsWidget(QWidget):
                 exposure_max = 400000
             if exposure_min < 100:
                 exposure_min = 100
-            self.slider_exposure_time.set_min_max_slider_values(exposure_min // 1000, exposure_max // 1000)
+            self.slider_exposure_time.set_min_max_slider_values(round(exposure_min / 1000, 1),
+                                                                exposure_max // 1000)
             bl_min, bl_max = self.camera.get_black_level_range()
             self.slider_black_level.set_min_max_slider_values(bl_min, bl_max)
-        exposure_time = self.camera.get_exposure()
+        if expo_value != -1:
+            exposure_time = expo_value
+        else:
+            exposure_time = self.camera.get_exposure()
         self.slider_exposure_time.set_value(exposure_time / 1000)
         bl = self.camera.get_black_level()
         self.slider_black_level.set_value(bl)
+        self.slider_exposure_time.slider_changed.connect(self.slider_exposure_time_changing)
+
+    def set_enabled(self, value: bool):
+        """
+        Set changing value enabled.
+        :param value: True to set enabled.
+        """
+        self.slider_exposure_time.set_enabled(value)
+        self.slider_black_level.set_enabled(value)
 
 
 class CameraInfosWidget(QWidget):

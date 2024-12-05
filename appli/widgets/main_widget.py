@@ -187,7 +187,6 @@ class MenuWidget(QWidget):
         self.buttons_signal = []
         self.buttons_enabled = []
         self.zoom_widget = AoiZoomOptionsWidget(self)
-        self.expo_widget = ExpoSliderWidget(title=translate('expo_slider'))
         self.actual_button = None
 
     def display_layout(self):
@@ -199,11 +198,13 @@ class MenuWidget(QWidget):
                 self.layout.addWidget(element)
             else:
                 self.layout.addStretch()
+        '''
         if self.parent.parent.aoi is not None:
             self.layout.addWidget(self.zoom_widget)
             self.zoom_widget.zoom_changed.connect(self.action_zoom_changed)
         if self.submenu is False:
             self.layout.addWidget(self.expo_widget)
+        '''
 
     def add_button(self, title: str, signal: str=None, option: bool=False):
         """
@@ -333,12 +334,6 @@ class MenuWidget(QWidget):
         self.zoom_factor = self.zoom_widget.get_zoom()
         print(f'Zoom {self.zoom_factor}')
 
-    def set_expo_enabled(self, value: bool):
-        self.expo_widget.set_enabled(value)
-
-    def get_expo_value(self):
-        """Return the exposure time value from the slider."""
-        return self.expo_widget.expo_slider.get_value()
 
 class TitleWidget(QWidget):
     """
@@ -416,7 +411,7 @@ class MainWidget(QWidget):
 
         # Adding actions
         self.main_menu.menu_clicked.connect(self.menu_action)
-        self.main_menu.expo_widget.expo_changed.connect(self.action_expo_changed)
+        #self.main_menu.expo_widget.expo_changed.connect(self.action_expo_changed)
 
         # Fixing sizes
         width = self.parent.width()
@@ -451,47 +446,40 @@ class MainWidget(QWidget):
                         self.parent.camera = camera
                         self.parent.camera.init_camera()
                         self.parent.camera_thread.set_camera(self.parent.camera)
-                        # Update menu exposure time slider
-                        min_expo, max_expo = self.parent.camera.get_exposure_range()
-                        if max_expo > 400000:
-                            max_expo = 400000
-                        if min_expo < 100:
-                            min_expo = 100
-                        min_expo = round(min_expo / 1000, 1)
-                        max_expo = round(max_expo / 1000, 1)
-                        self.main_menu.expo_widget.set_min_max_values(min_expo,
-                                                                      max_expo)
                         # Init default parameters !
                         self.menu_action('images')
                         self.init_default_camera_params()
-
                         # Start Thread
                         self.parent.image_bits_depth = get_bits_per_pixel(self.parent.camera.get_color_mode())
                         self.parent.camera_thread.start()
                         self.fast_mode = True
                     return True
-            return False
+        return False
 
     def init_default_camera_params(self):
         """Initialize a camera with default_config.txt."""
         if 'save_images_dir' in self.default_parameters:
             self.parent.saved_dir = self.default_parameters['save_images_dir']
-        if 'exposure' in self.default_parameters:
-            self.parent.camera.set_exposure(int(self.default_parameters['exposure']))
-            self.main_menu.expo_widget.set_value(int(self.default_parameters['exposure'])/1000)
-            #self.parent.camera_thread.set_timer_value(int(self.default_parameters['exposure'])/1000)
-        if 'blacklevel' in self.default_parameters:
-            self.parent.camera.set_black_level(int(self.default_parameters['blacklevel']))
+        if 'clock_freq' in self.default_parameters:
+            clock_f = float(self.default_parameters['clock_freq']) * 1e6
+            self.parent.camera.set_clock_frequency(clock_f)
         if 'framerate' in self.default_parameters:
             self.parent.camera.set_frame_rate(int(self.default_parameters['framerate']))
+        if 'exposure' in self.default_parameters:
+            self.parent.camera.set_exposure(int(self.default_parameters['exposure']))
+        if 'blacklevel' in self.default_parameters:
+            self.parent.camera.set_black_level(int(self.default_parameters['blacklevel']))
         if 'colormode' in self.default_parameters:
-            print(f'Color mode = {self.default_parameters["colormode"]}')
             self.parent.camera.set_color_mode(self.default_parameters['colormode'])
+        '''
         camera = self.parent.camera
         print(f'Expo = {camera.get_exposure()}')
+        print(f'Expo_R = {camera.get_exposure_range()}')
         print(f'FPS  = {camera.get_frame_rate()}')
         print(f'Colo = {camera.get_color_mode()}')
         print(f'ExpoRange = {camera.get_exposure_range()}')
+        print(f'Clock = {camera.get_clock_frequency()}')
+        '''
 
     def clear_layout(self, row: int, column: int) -> None:
         """
@@ -624,16 +612,6 @@ class MainWidget(QWidget):
         self.clear_layout(TOP_RIGHT_ROW, TOP_RIGHT_COL)
         self.clear_layout(BOT_RIGHT_ROW, BOT_RIGHT_COL)
 
-        if self.parent.camera is not None:
-            if self.mode != 'images':
-                self.set_expo_checkable(True)
-                expo = self.parent.camera.get_exposure()
-                self.main_menu.expo_widget.set_value(expo/1000)
-            else:
-                self.set_expo_checkable(False)
-        else:
-            self.set_expo_checkable(False)
-
         if self.mode == 'images':
             if self.parent.raw_image is not None:
                 self.update_image()
@@ -702,6 +680,7 @@ class MainWidget(QWidget):
             self.layout.addWidget(self.top_right_widget, TOP_RIGHT_ROW, TOP_RIGHT_COL)
             self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
             self.set_bot_right_widget(self.bot_right_widget)
+            self.bot_right_widget.update_parameters(auto_min_max=True)
             if self.parent.camera is None:
                 self.submenu_widget.set_enabled(2, False)
 
@@ -714,6 +693,7 @@ class MainWidget(QWidget):
             self.layout.addWidget(self.top_right_widget, TOP_RIGHT_ROW, TOP_RIGHT_COL)
             self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
             self.set_bot_right_widget(self.bot_right_widget)
+            self.bot_right_widget.update_parameters(auto_min_max=True)
             if self.parent.camera is None:
                 self.submenu_widget.set_enabled(2, False)
 
@@ -727,6 +707,10 @@ class MainWidget(QWidget):
             self.top_right_widget = ImageHistogramWidget('Image Histogram')
             self.top_right_widget.set_background('white')
             self.set_top_right_widget(self.top_right_widget)
+            self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
+            self.set_bot_right_widget(self.bot_right_widget)
+            self.bot_right_widget.update_parameters(auto_min_max=True)
+            self.bot_right_widget.set_enabled(False)
 
         elif self.mode == 'quant_samp':
             self.update_image(aoi=True)
@@ -852,16 +836,6 @@ class MainWidget(QWidget):
         wi = (width*LEFT_WIDTH)//100
         he = (height*TOP_HEIGHT)//100
         self.top_left_widget.update_size(wi, he, aoi)
-
-    def set_expo_checkable(self, value: bool=False):
-        """Set checkable the exposure time changing slider."""
-        self.main_menu.expo_widget.set_checkable(value)
-
-    def action_expo_changed(self, event):
-        """Action performed when the exposure value in the main menu slider changed."""
-        expo_value = self.main_menu.get_expo_value()*1000
-        #self.parent.camera_thread.set_timer_value(expo_value / 1000)
-        self.parent.camera.set_exposure(expo_value)
 
 
 if __name__ == '__main__':

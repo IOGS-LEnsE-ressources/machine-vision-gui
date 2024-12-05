@@ -82,6 +82,7 @@ class MainWindow(QMainWindow):
         self.camera_index = 0  # TO UPDATE !! when a new camera is selected with a camera_list object
         self.camera_thread = CameraThread()
         self.camera_thread.image_acquired.connect(self.thread_update_image)
+        self.camera_exposure = 0
         # GUI structure
         self.central_widget = MainWidget(self)
         self.setCentralWidget(self.central_widget)
