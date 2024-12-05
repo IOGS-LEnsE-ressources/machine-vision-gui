@@ -33,7 +33,7 @@ def process_hist_from_array(array: np.ndarray, bins: list) -> (np.ndarray, np.nd
 
 def save_hist(data: np.ndarray, data_hist: np.ndarray, bins: np.ndarray,
               title: str = 'Image Histogram', file_name: str = 'histogram.png',
-              informations: str = ''):
+              informations: str = '', dir_path: str = ''):
     """
     Create a PNG from histogram data.
     :param data: Data to process.
@@ -42,6 +42,7 @@ def save_hist(data: np.ndarray, data_hist: np.ndarray, bins: np.ndarray,
     :param title: Title of the figure. Default: Image Histogram.
     :param file_name: Name of the file to store the PNG image. Default: histogram.png.
     :param informations: Informations to display in the graph.
+    :param dir_path: Default directory.
     """
     # Create histogram graph
     n = len(bins)
@@ -64,10 +65,16 @@ def save_hist(data: np.ndarray, data_hist: np.ndarray, bins: np.ndarray,
              transform=plt.gca().transAxes, bbox=dict(facecolor='white', alpha=0.5))
 
     # histogram to store in a png file - and a txt file (array) ??
-    default_dir = QDir.homePath()
-    file_path, _ = QFileDialog.getSaveFileName(None, translate('save_histogram_title_window'),
-                                               f'{default_dir}/{file_name}',
-                                               "Images PNG (*.png)")
+    if dir_path == '':
+        default_dir = QDir.homePath()
+        file_path, _ = QFileDialog.getSaveFileName(None, translate('save_histogram_title_window'),
+                                                   f'{default_dir}/{file_name}',
+                                                   "Images PNG (*.png)")
+    else:
+        file_path, _ = QFileDialog.getSaveFileName(None, translate('save_histogram_title_window'),
+                                                   f'{dir_path}/{file_name}',
+                                                   "Images PNG (*.png)")
+
     if file_path:
         # create an image of the histogram of the saved_image
         plt.savefig(file_path)
@@ -184,7 +191,7 @@ class HistoTimeOptionsWidget(QWidget):
         self.start_button = QPushButton(translate('button_start_time'))
         self.start_button.setStyleSheet(styleH2)
         self.start_button.setStyleSheet(unactived_button)
-        self.start_button.setFixedHeight(OPTIONS_BUTTON_HEIGHT)
+        self.start_button.setFixedHeight(BUTTON_HEIGHT)
         self.start_button.clicked.connect(self.clicked_action)
 
         self.progress_bar = QProgressBar(self, objectName="IOGSProgressBar")
@@ -195,6 +202,9 @@ class HistoTimeOptionsWidget(QWidget):
         self.save_histo_button.setFixedHeight(OPTIONS_BUTTON_HEIGHT)
         self.save_histo_button.clicked.connect(self.clicked_action)
         self.save_histo_button.setEnabled(False)
+
+        self.zoom_check = QCheckBox(translate('button_zoom_histo'))
+        self.zoom_check.stateChanged.connect(self.clicked_action)
 
         self.pixel_select_widget = QWidget()
         self.pixel_select_layout = QHBoxLayout()
@@ -216,6 +226,7 @@ class HistoTimeOptionsWidget(QWidget):
         self.layout.addWidget(self.progress_bar)
         self.layout.addStretch()
         self.layout.addWidget(self.pixel_select_widget)
+        self.layout.addWidget(self.zoom_check)
         self.layout.addStretch()
         self.layout.addWidget(self.save_histo_button)
         self.layout.addStretch()
@@ -235,6 +246,9 @@ class HistoTimeOptionsWidget(QWidget):
             self.start_acq_clicked.emit('save_hist_time')
         elif sender == self.pixel_select:
             self.start_acq_clicked.emit('pixel_changed')
+        elif sender == self.zoom_check:
+            is_checked = self.zoom_check.isChecked()
+            self.start_acq_clicked.emit(f'zoom_histo:{is_checked}')
 
     def is_acquiring(self):
         """Return true if the acquisition is running."""

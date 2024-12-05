@@ -457,8 +457,10 @@ class MainWidget(QWidget):
                             max_expo = 400000
                         if min_expo < 100:
                             min_expo = 100
-                        self.main_menu.expo_widget.set_min_max_values(min_expo/1000,
-                                                                      max_expo/1000)
+                        min_expo = round(min_expo / 1000, 1)
+                        max_expo = round(max_expo / 1000, 1)
+                        self.main_menu.expo_widget.set_min_max_values(min_expo,
+                                                                      max_expo)
                         # Init default parameters !
                         self.menu_action('images')
                         self.init_default_camera_params()
@@ -472,7 +474,8 @@ class MainWidget(QWidget):
 
     def init_default_camera_params(self):
         """Initialize a camera with default_config.txt."""
-        print('Default Parameters')
+        if 'save_images_dir' in self.default_parameters:
+            self.parent.saved_dir = self.default_parameters['save_images_dir']
         if 'exposure' in self.default_parameters:
             self.parent.camera.set_exposure(int(self.default_parameters['exposure']))
             self.main_menu.expo_widget.set_value(int(self.default_parameters['exposure'])/1000)
@@ -691,11 +694,14 @@ class MainWidget(QWidget):
             self.set_bot_right_widget(self.bot_right_widget)
 
         elif self.mode == 'histo':
+            self.parent.zoom_histo_enabled = False
             # Display a label with definition or what to do in the options view ?
             self.update_image(aoi=True)
             self.top_right_widget = ImageHistogramWidget('Image Histogram')
             self.top_right_widget.set_background('white')
             self.layout.addWidget(self.top_right_widget, TOP_RIGHT_ROW, TOP_RIGHT_COL)
+            self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
+            self.set_bot_right_widget(self.bot_right_widget)
             if self.parent.camera is None:
                 self.submenu_widget.set_enabled(2, False)
 
@@ -706,6 +712,8 @@ class MainWidget(QWidget):
             self.top_right_widget = ImageHistogramWidget('Image Histogram')
             self.top_right_widget.set_background('white')
             self.layout.addWidget(self.top_right_widget, TOP_RIGHT_ROW, TOP_RIGHT_COL)
+            self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
+            self.set_bot_right_widget(self.bot_right_widget)
             if self.parent.camera is None:
                 self.submenu_widget.set_enabled(2, False)
 
@@ -852,7 +860,7 @@ class MainWidget(QWidget):
     def action_expo_changed(self, event):
         """Action performed when the exposure value in the main menu slider changed."""
         expo_value = self.main_menu.get_expo_value()*1000
-        self.parent.camera_thread.set_timer_value(expo_value / 1000)
+        #self.parent.camera_thread.set_timer_value(expo_value / 1000)
         self.parent.camera.set_exposure(expo_value)
 
 

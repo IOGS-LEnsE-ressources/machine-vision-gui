@@ -132,7 +132,7 @@ class AoiSelectOptionsWidget(QWidget):
         self.center_aoi_button = QPushButton(translate('button_center_aoi'))
         self.center_aoi_button.setStyleSheet(styleH2)
         self.center_aoi_button.setStyleSheet(unactived_button)
-        self.center_aoi_button.setFixedHeight(OPTIONS_BUTTON_HEIGHT)
+        self.center_aoi_button.setFixedHeight(BUTTON_HEIGHT)
         self.center_aoi_button.clicked.connect(self.centered_action)
 
         # All image
