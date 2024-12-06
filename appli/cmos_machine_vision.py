@@ -98,7 +98,8 @@ class MainWindow(QMainWindow):
         Action performed by an event in the main widget.
         :param event: Event that triggered the action.
         """
-        print(f'FPS = {self.camera.get_frame_rate()}')
+        if self.camera is not None:
+            print(f'FPS = {self.camera.get_frame_rate()}')
         if self.raw_image is not None:
             size = self.raw_image.shape[1] * self.raw_image.shape[0]
             self.fast_mode = size > 1e5 # Fast mode if number of pixels > 1e5
@@ -235,6 +236,12 @@ class MainWindow(QMainWindow):
             self.central_widget.update_image(aoi=True)
             if self.central_widget.options_widget.is_acquiring():
                 self.central_widget.options_widget.increase_counter(self.raw_image)
+                list_values = np.array(self.central_widget.options_widget.pixels_value)
+                time_values = np.linspace(1, list_values[0].shape[0], list_values[0].shape[0])
+                self.central_widget.bot_right_widget.set_data(time_values, list_values[0].squeeze(),
+                                                              x_label=translate('sample_number'),
+                                                              y_label=translate('pixel_value'))
+                self.central_widget.bot_right_widget.update_chart()
 
         elif self.central_widget.mode == 'quant_samp':
             self.central_widget.update_image(aoi=True)
@@ -380,7 +387,7 @@ class MainWindow(QMainWindow):
                 bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth+1)
                 bins, hist_data = process_hist_from_array(image, bins)
                 if self.zoom_histo_enabled:
-                    target = 5
+                    target = 1
                     # Find min index
                     min_index = np.argmax(hist_data > target) - 10
                     if min_index < 0:
@@ -396,7 +403,8 @@ class MainWindow(QMainWindow):
                           f'space_histo.png', dir_path=dir_path,
                           x_label=translate('x_label_histo'),
                           y_label=translate('y_label_histo'))
-            self.central_widget.top_right_widget.set_image(image, zoom_mode=self.zoom_histo_enabled)
+            self.central_widget.top_right_widget.set_image(image, zoom_mode=self.zoom_histo_enabled,
+                                                           zoom_target=1)
         elif 'zoom_histo' in event:
             if 'True' in event:
                 self.zoom_histo_enabled = True
@@ -430,7 +438,7 @@ class MainWindow(QMainWindow):
             bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth+1)
             bins, hist_data = process_hist_from_array(pixels, bins)
             if self.zoom_histo_enabled:
-                target = 5
+                target = 1
                 # Find min index
                 min_index = np.argmax(hist_data > target) - 10
                 if min_index < 0:
@@ -455,7 +463,8 @@ class MainWindow(QMainWindow):
             pixel_index = self.central_widget.options_widget.get_pixel_index()
             pixels = self.central_widget.options_widget.get_pixels(pixel_index)
             self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
-            self.central_widget.top_right_widget.set_image(pixels, zoom_mode=self.zoom_histo_enabled)
+            self.central_widget.top_right_widget.set_image(pixels, zoom_mode=self.zoom_histo_enabled,
+                                                           zoom_target=1)
 
     def action_quantize_image(self, event):
         """Action performed when an event occurred in the quantization options widget."""

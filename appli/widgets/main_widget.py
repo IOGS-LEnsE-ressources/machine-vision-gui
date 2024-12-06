@@ -719,10 +719,8 @@ class MainWidget(QWidget):
                                                   translate('y_label_histo'))
             self.top_right_widget.set_background('white')
             self.set_top_right_widget(self.top_right_widget)
-            self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
+            self.bot_right_widget = HistoTimeChartWidget(self)
             self.set_bot_right_widget(self.bot_right_widget)
-            self.bot_right_widget.update_parameters(auto_min_max=True)
-            self.bot_right_widget.set_enabled(False)
 
         elif self.mode == 'quant_samp':
             self.update_image(aoi=True)

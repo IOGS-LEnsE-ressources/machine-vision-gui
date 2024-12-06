@@ -8,16 +8,18 @@ This file contains graphical elements to display histograms of images in a widge
 .. moduleauthor:: Julien VILLEMEJANE (PRAG LEnsE) <julien.villemejane@institutoptique.fr>
 Creation : oct/2024
 """
+
+import sys, os
 from lensepy import *
 from lensepy.css import *
-import sys, os
+from lensepy.pyqt6.widget_xy_chart import *
 import numpy as np
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QComboBox, QPushButton, QLineEdit, QProgressBar, QCheckBox,
     QMessageBox, QFileDialog
 )
-from PyQt6.QtCore import pyqtSignal, QDir
+from PyQt6.QtCore import pyqtSignal, QDir, Qt
 from matplotlib import pyplot as plt
 
 
@@ -167,6 +169,16 @@ class HistoTimeOptionsWidget(QWidget):
         self.label_title_time_analysis = QLabel(translate('title_time_analysis'))
         self.label_title_time_analysis.setStyleSheet(styleH1)
 
+        # Camera parameters
+        self.label_params_camera = QLabel('')
+        expo = round(self.parent.parent.camera.get_exposure() / 1000, 1)
+        fps = round(self.parent.parent.camera.get_frame_rate(), 1)
+        bl = self.parent.parent.camera.get_black_level()
+        text = f'Expo = {expo} ms / FPS = {fps} / BL = {bl}'
+        self.label_params_camera.setText(text)
+        self.label_params_camera.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label_params_camera.setStyleSheet(styleH2)
+
         # Number of points
         self.nb_of_points_widget = QWidget()
         self.nb_of_points_sublayout = QHBoxLayout()
@@ -212,6 +224,7 @@ class HistoTimeOptionsWidget(QWidget):
         self.pixel_select_layout.addWidget(self.pixel_select)
 
         self.layout.addWidget(self.label_title_time_analysis)
+        self.layout.addWidget(self.label_params_camera)
         self.layout.addWidget(self.start_button)
         self.layout.addWidget(self.nb_of_points_widget)
         self.layout.addWidget(self.progress_bar)
@@ -306,3 +319,48 @@ class HistoTimeOptionsWidget(QWidget):
         """Set random pixels X and Y coordinates."""
         self.image_x = pixels_x
         self.image_y = pixels_y
+
+class HistoTimeChartWidget(QWidget):
+
+    def __init__(self, parent):
+        """
+
+        """
+        super().__init__(parent=None)
+        self.layout = QVBoxLayout()
+        self.parent = parent
+
+        # Graph
+        # -----
+        self.time_chart = XYChartWidget(self)
+        self.time_chart.set_title(translate('title_time_analysis'))
+        self.time_chart.set_background('white')
+
+        self.layout.addWidget(self.time_chart)
+
+    def set_data(self, x_axis, y_axis, x_label: str = '', y_label: str = ''):
+        """
+        Set the X and Y axis data to display on the chart.
+
+        Parameters
+        ----------
+        x_axis : Numpy array
+            X-axis value to display.
+        y_axis : Numpy array
+            Y-axis value to display.
+        """
+        self.time_chart.set_data(x_axis, y_axis, x_label=x_label, y_label=y_label)
+
+    def update_chart(self):
+        """
+        Set the X and Y axis data to display on the chart.
+
+        Parameters
+        ----------
+        x_axis : Numpy array
+            X-axis value to display.
+        y_axis : Numpy array
+            Y-axis value to display.
+        """
+        self.time_chart.refresh_chart()
+        #self.time_chart.display_last(50)
