@@ -33,7 +33,8 @@ def process_hist_from_array(array: np.ndarray, bins: list) -> (np.ndarray, np.nd
 
 def save_hist(data: np.ndarray, data_hist: np.ndarray, bins: np.ndarray,
               title: str = 'Image Histogram', file_name: str = 'histogram.png',
-              informations: str = '', dir_path: str = ''):
+              informations: str = '', dir_path: str = '',
+              x_label: str = '', y_label: str = ''):
     """
     Create a PNG from histogram data.
     :param data: Data to process.
@@ -55,6 +56,8 @@ def save_hist(data: np.ndarray, data_hist: np.ndarray, bins: np.ndarray,
     plt.bar(bins[:-1], data_hist, width=np.diff(bins),
             edgecolor='black', alpha=0.75, color='blue')
     plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
     text_str = f'Mean = {mean_data:.2f}\nStdDev = {np.std(data):.2f}'
     plt.text(x_text_pos, 0.95, text_str, fontsize=10, verticalalignment='top',
              horizontalalignment='right',
@@ -115,24 +118,16 @@ class HistoSpaceOptionsWidget(QWidget):
         self.label_title_spatial_analysis = QLabel(translate('title_histo_analysis'))
         self.label_title_spatial_analysis.setStyleSheet(styleH1)
 
-        self.snap_button = QPushButton(translate('button_acquire_histo'))
-        self.snap_button.setStyleSheet(styleH2)
-        self.snap_button.setStyleSheet(unactived_button)
-        self.snap_button.setFixedHeight(BUTTON_HEIGHT)
-        self.snap_button.clicked.connect(self.clicked_action)
-
         self.zoom_check = QCheckBox(translate('button_zoom_histo'))
         self.zoom_check.stateChanged.connect(self.clicked_action)
 
         self.save_png_image_button = QPushButton(translate('button_save_png_image_spatial'))
         self.save_png_image_button.setStyleSheet(styleH2)
-        self.save_png_image_button.setStyleSheet(disabled_button)
-        self.save_png_image_button.setFixedHeight(OPTIONS_BUTTON_HEIGHT)
+        self.save_png_image_button.setStyleSheet(unactived_button)
+        self.save_png_image_button.setFixedHeight(BUTTON_HEIGHT)
         self.save_png_image_button.clicked.connect(self.clicked_action)
-        self.save_png_image_button.setEnabled(False)
 
         self.layout.addWidget(self.label_title_spatial_analysis)
-        self.layout.addWidget(self.snap_button)
         self.layout.addWidget(self.zoom_check)
         self.layout.addStretch()
         self.layout.addWidget(self.save_png_image_button)
@@ -142,11 +137,7 @@ class HistoSpaceOptionsWidget(QWidget):
 
     def clicked_action(self):
         sender = self.sender()
-        if sender == self.snap_button:
-            self.snap_clicked.emit('snap')
-            self.save_png_image_button.setStyleSheet(unactived_button)
-            self.save_png_image_button.setEnabled(True)
-        elif sender == self.save_png_image_button:
+        if sender == self.save_png_image_button:
             self.snap_clicked.emit('save_png')
         elif sender == self.zoom_check:
             is_checked = self.zoom_check.isChecked()
@@ -196,10 +187,10 @@ class HistoTimeOptionsWidget(QWidget):
 
         self.progress_bar = QProgressBar(self, objectName="IOGSProgressBar")
 
-        self.save_histo_button = QPushButton(translate('button_save_histo_spatial'))
+        self.save_histo_button = QPushButton(translate('button_save_histo_time'))
         self.save_histo_button.setStyleSheet(styleH2)
         self.save_histo_button.setStyleSheet(disabled_button)
-        self.save_histo_button.setFixedHeight(OPTIONS_BUTTON_HEIGHT)
+        self.save_histo_button.setFixedHeight(BUTTON_HEIGHT)
         self.save_histo_button.clicked.connect(self.clicked_action)
         self.save_histo_button.setEnabled(False)
 

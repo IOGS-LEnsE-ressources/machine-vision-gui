@@ -235,14 +235,20 @@ class CameraSettingsWidget(QWidget):
 
         # Settings
         # --------
-        self.slider_exposure_time = SliderBloc(name='name_slider_exposure_time', unit='ms', min_value=0, max_value=10)
-        self.slider_black_level = SliderBloc(name='name_slider_black_level', unit='gray',
-                                              min_value=0, max_value=255, integer=True)
+        self.slider_exposure_time = SliderBloc(name=translate('name_slider_exposure_time'),
+                                               unit='ms', min_value=0,max_value=10)
+        self.slider_black_level = SliderBloc(name=translate('name_slider_black_level'),
+                                             unit='gray', min_value=0, max_value=255, integer=True)
         self.slider_black_level.slider_changed.connect(self.slider_black_level_changing)
+
+        self.slider_frame_rate = SliderBloc(name=translate('name_slider_frame_rate'), unit='gray',
+                                            min_value=0.5, max_value=10)
 
         self.layout.addWidget(self.label_title_camera_settings)
         self.layout.addWidget(self.subwidget_camera_id)
         self.layout.addWidget(self.slider_exposure_time)
+        self.layout.addWidget(self.slider_frame_rate)
+        self.layout.addStretch()
         self.layout.addWidget(self.slider_black_level)
         self.layout.addStretch()
         self.setLayout(self.layout)
@@ -266,14 +272,31 @@ class CameraSettingsWidget(QWidget):
         else:
             print('No Camera Connected')
 
-    def update_parameters(self, auto_min_max: bool = False, expo_value: float = -1) -> None:
+    def slider_frame_rate_changing(self, event):
+        """Action performed when the exposure time slider changed."""
+        if self.camera is not None:
+            frame_rate_value = self.slider_frame_rate.get_value()
+            self.camera.set_frame_rate(frame_rate_value)
+            exposure_min, exposure_max = self.camera.get_exposure_range()
+            if exposure_max > 3000000:
+                exposure_max = 3000000
+            if exposure_min < 100:
+                exposure_min = 100
+            self.slider_exposure_time.set_min_max_slider_values(round(exposure_min / 1000, 1),
+                                                                exposure_max // 1000)
+            self.settings_changed.emit('camera_settings_changed')
+        else:
+            print('No Camera Connected')
+
+    def update_parameters(self, auto_min_max: bool = False, expo_value: float = -1,
+                          fps_value: float = -1) -> None:
         """Update displayed parameters values, from the camera.
 
         """
         if auto_min_max:
             exposure_min, exposure_max = self.camera.get_exposure_range()
-            if exposure_max > 400000:
-                exposure_max = 400000
+            if exposure_max > 3000000:
+                exposure_max = 3000000
             if exposure_min < 100:
                 exposure_min = 100
             self.slider_exposure_time.set_min_max_slider_values(round(exposure_min / 1000, 1),
@@ -284,10 +307,16 @@ class CameraSettingsWidget(QWidget):
             exposure_time = expo_value
         else:
             exposure_time = self.camera.get_exposure()
+        if fps_value != -1:
+            fps = fps_value
+        else:
+            fps = self.camera.get_frame_rate()
         self.slider_exposure_time.set_value(exposure_time / 1000)
         bl = self.camera.get_black_level()
         self.slider_black_level.set_value(bl)
+        self.slider_frame_rate.set_value(fps)
         self.slider_exposure_time.slider_changed.connect(self.slider_exposure_time_changing)
+        self.slider_frame_rate.slider_changed.connect(self.slider_frame_rate_changing)
 
     def set_enabled(self, value: bool):
         """
@@ -398,9 +427,9 @@ class CameraInfosWidget(QWidget):
             self.label_value_camera_id.setText(serial_no)
             max_width, max_height = self.parent.parent.camera.get_sensor_size()
             self.label_value_camera_size.setText(f'W={max_width} x H={max_height} px')
-            fps = self.parent.parent.camera.get_frame_rate()
+            fps = round(self.parent.parent.camera.get_frame_rate(), 1)
             self.label_value_camera_fps.setText(f'{fps} Frame/s (fps)')
-            expo = self.parent.parent.camera.get_exposure() / 1000
+            expo = round(self.parent.parent.camera.get_exposure() / 1000, 1)
             self.label_value_camera_exposure.setText(f'{expo} ms')
         else:
             self.label_value_camera_name.setText('No Camera')

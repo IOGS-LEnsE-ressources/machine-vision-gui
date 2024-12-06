@@ -22,6 +22,21 @@ button_segmentation;Segmentation
 button_options;Options Interface
 #
 # ------------------
+# Camera / Paramètres
+# ------------------
+title_camera_settings;Paramètres de la caméra
+title_camera_infos_view;Informations sur la caméra
+label_title_camera_name;Nom de la caméra
+label_title_camera_id;Numéro de série
+label_title_camera_size;Taille du capteur
+label_title_camera_exposure;Temps d'exposition
+label_title_camera_fps;Image(s) par seconde
+name_slider_exposure_time;Temps d'exposition
+name_slider_black_level;Black Level (offset)
+name_slider_frame_rate;Image(s) par seconde
+
+#
+# ------------------
 # Images
 # ------------------
 button_open_image;Ouvrir une image
@@ -41,7 +56,7 @@ button_center_aoi;Centrer la ZdI
 button_full_image;Sélectionner l'image entière
 #
 # ------------------
-# Histograms
+# Histogrammes
 # ------------------
 button_histo_space;Répartition spatiale
 button_histo_time;Etude temporelle
@@ -51,6 +66,14 @@ button_save_png_image_spatial;Sauvegarder l'histogramme (PNG)
 histo_original_image;Histogramme Image originale
 histo_eroded_image;Histogramme Image modifiée
 histo_quantized_image;Histogramme Image modifiée
+x_label_histo;Nuance de gris
+y_label_histo;Nombre de pixels
+button_histo_binning;Binning (non implémenté)
+title_time_analysis;Analyse temporelle
+button_start_time;Lancer une acquisition
+label_pixel_select;Sélection du pixel
+button_zoom_histo;Zoom sur histogramme
+button_save_histo_time;Sauvegarder l'histogramme (PNG)
 #
 # ------------------
 # Quantification / Echantillonnage

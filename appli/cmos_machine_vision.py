@@ -98,6 +98,7 @@ class MainWindow(QMainWindow):
         Action performed by an event in the main widget.
         :param event: Event that triggered the action.
         """
+        print(f'FPS = {self.camera.get_frame_rate()}')
         if self.raw_image is not None:
             size = self.raw_image.shape[1] * self.raw_image.shape[0]
             self.fast_mode = size > 1e5 # Fast mode if number of pixels > 1e5
@@ -229,7 +230,7 @@ class MainWindow(QMainWindow):
         elif self.central_widget.mode == 'histo':
             self.action_histo_space('live')
         elif self.central_widget.mode == 'histo_space':
-            self.central_widget.update_image(aoi=True)
+            self.action_histo_space('snap')
         elif self.central_widget.mode == 'histo_time':
             self.central_widget.update_image(aoi=True)
             if self.central_widget.options_widget.is_acquiring():
@@ -364,12 +365,14 @@ class MainWindow(QMainWindow):
         """Action performed when an event occurred in the histo_space options widget."""
         if event == 'snap':
             self.saved_image = self.raw_image.copy()
-            image = get_aoi_array(self.saved_image, self.aoi)
-            self.central_widget.top_right_widget.set_image(image, zoom_mode=self.zoom_histo_enabled)
+            image = get_aoi_array(self.raw_image, self.aoi)
+            self.central_widget.top_right_widget.set_image(image,
+                                                           zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'live':
             image = get_aoi_array(self.raw_image, self.aoi)
-            self.central_widget.top_right_widget.set_image(image, self.fast_mode, zoom_mode=self.zoom_histo_enabled)
+            self.central_widget.top_right_widget.set_image(image, self.fast_mode,
+                                                           zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'save_png':
             if self.saved_image is not None:
@@ -390,15 +393,16 @@ class MainWindow(QMainWindow):
                     bins = bins[min_index:max_index+1]
                 _, dir_path  = save_file_path(self.saved_dir, f'Image_histo.png', dialog=False)
                 save_hist(image, hist_data, bins, f'Image Histogram',
-                          f'space_histo.png', dir_path=dir_path)
+                          f'space_histo.png', dir_path=dir_path,
+                          x_label=translate('x_label_histo'),
+                          y_label=translate('y_label_histo'))
+            self.central_widget.top_right_widget.set_image(image, zoom_mode=self.zoom_histo_enabled)
         elif 'zoom_histo' in event:
-            if self.saved_image is not None:
-                if 'True' in event:
-                    self.zoom_histo_enabled = True
-                else:
-                    self.zoom_histo_enabled = False
-                image = get_aoi_array(self.saved_image, self.aoi)
-                self.central_widget.top_right_widget.set_image(image, zoom_mode=self.zoom_histo_enabled)
+            if 'True' in event:
+                self.zoom_histo_enabled = True
+            else:
+                self.zoom_histo_enabled = False
+
 
         # Display the AOI.
         self.central_widget.update_image(aoi=True)
@@ -439,7 +443,9 @@ class MainWindow(QMainWindow):
                 bins = bins[min_index:max_index+1]
             _, dir_path = save_file_path(self.saved_dir, f'Image_histo_time.png', dialog=False)
             save_hist(pixels, hist_data, bins, f'Time Histogram - Pixel {pixel_index+1}',
-                      f'time_histo_pixel_{pixel_index+1}.png', dir_path=dir_path)
+                      f'time_histo_pixel_{pixel_index+1}.png', dir_path=dir_path,
+                      x_label=translate('x_label_histo'),
+                      y_label=translate('y_label_histo'))
         elif 'zoom_histo' in event:
             if self.saved_image is not None:
                 if 'True' in event:
