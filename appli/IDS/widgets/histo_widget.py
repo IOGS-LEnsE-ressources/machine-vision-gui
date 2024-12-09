@@ -359,7 +359,7 @@ class HistoTimeChartWidget(QWidget):
         """
         self.time_chart.set_data(x_axis, y_axis, x_label=x_label, y_label=y_label)
 
-    def update_chart(self):
+    def update_chart(self, number_samples: int = 50):
         """
         Set the X and Y axis data to display on the chart.
 
@@ -371,4 +371,4 @@ class HistoTimeChartWidget(QWidget):
             Y-axis value to display.
         """
         self.time_chart.refresh_chart()
-        #self.time_chart.display_last(50)
+        self.time_chart.display_last(number_samples)

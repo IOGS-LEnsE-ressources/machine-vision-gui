@@ -243,7 +243,7 @@ class MainWindow(QMainWindow):
                 self.central_widget.bot_right_widget.set_data(time_values, list_values[0].squeeze(),
                                                               x_label=translate('sample_number'),
                                                               y_label=translate('pixel_value'))
-                self.central_widget.bot_right_widget.update_chart()
+                self.central_widget.bot_right_widget.update_chart(20)
 
         elif self.central_widget.mode == 'quant_samp':
             self.central_widget.update_image(aoi=True)
