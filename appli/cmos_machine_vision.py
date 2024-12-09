@@ -336,8 +336,6 @@ class MainWindow(QMainWindow):
             max_expo = 400000
         min_expo = round(min_expo/1000, 1)
         max_expo = round(max_expo/1000, 1)
-        self.central_widget.main_menu.expo_widget.set_min_max_values(min_expo,
-                                                                     max_expo)
         # Start Thread
         self.image_bits_depth = get_bits_per_pixel(self.camera.get_color_mode())
         self.camera_thread.start()
