@@ -47,6 +47,7 @@ class MainWindow(QMainWindow):
         self.saved_image = None
         self.aoi = None
         self.fast_mode = False
+        self.zoom_histo_enabled = False
         self.image_bits_depth = 8
         # Displayed image
         self.check_diff = False
@@ -186,6 +187,7 @@ class MainWindow(QMainWindow):
 
         self.central_widget.top_left_widget.set_image_from_array(self.image)
 
+        # Update widgets
         if self.central_widget.mode == 'images':
             if self.camera is not None:
                 # Histogram of the global image.
@@ -203,6 +205,13 @@ class MainWindow(QMainWindow):
             self.central_widget.update_image(aoi=True)
             if self.central_widget.options_widget.is_acquiring():
                 self.central_widget.options_widget.increase_counter(self.raw_image)
+                list_values = np.array(self.central_widget.options_widget.pixels_value)
+                time_values = np.linspace(1, list_values[0].shape[0], list_values[0].shape[0])
+                self.central_widget.bot_right_widget.set_data(time_values, list_values[0].squeeze(),
+                                                              x_label=translate('sample_number'),
+                                                              y_label=translate('pixel_value'))
+                self.central_widget.bot_right_widget.update_chart(20)
+
 
         elif self.central_widget.mode == 'quant_samp':
             self.central_widget.update_image(aoi=True)

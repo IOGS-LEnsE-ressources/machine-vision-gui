@@ -96,73 +96,6 @@ def load_default_dictionary(language: str) -> bool:
     load_dictionary(file_name_dict)
 
 
-class ExpoSliderWidget(QWidget):
-    """
-    Slider for exposure time.
-    """
-
-    expo_changed = pyqtSignal(str)
-
-    def __init__(self, parent=None, title: str='expo_slider'):
-        """
-        Default Constructor.
-        :param parent: Parent widget of the menu widget.
-        :param title: Title of the menu.
-        """
-        super().__init__(parent=parent)
-        self.enabled = False
-        # Layout and graphical elements
-        self.layout = QHBoxLayout()
-
-        self.check_expo = QCheckBox()
-        self.expo_slider = SliderBloc(name=translate('expo_slider'), unit=' ms',
-                                      min_value=0, max_value=1)
-        self.layout.addWidget(self.expo_slider)
-        self.layout.addWidget(self.check_expo)
-        self.setLayout(self.layout)
-        self.check_expo.stateChanged.connect(self.action_check_changed)
-        self.expo_slider.slider_changed.connect(self.action_slider_changed)
-        self.__set_enabled(False)
-
-    def set_min_max_values(self, min_value, max_value):
-        """Set the minimum and the maximum values of the slider."""
-        self.expo_slider.set_min_max_slider_values(min_value, max_value)
-
-    def is_expo_checked(self):
-        """Return if the exposure slider is enabled."""
-        return self.check_expo.isChecked()
-
-    def __set_enabled(self, value: bool=False):
-        """Set enabled the widget."""
-        self.enabled = value
-        self.expo_slider.set_enabled(self.enabled)
-
-    def set_checkable(self, value: bool=False):
-        """Set checkable the widget."""
-        self.check_expo.setEnabled(value)
-
-    def action_check_changed(self):
-        """Action performed when the expo slider is checked."""
-        self.enabled = not self.enabled
-        self.__set_enabled(self.enabled)
-        print('slider_expo_changed')
-
-    def action_slider_changed(self):
-        """Action performed when the expo slider changed."""
-        self.expo_changed.emit('slider')
-        print('slider_expo_changed')
-
-    def get_value(self):
-        """Return the value of the slider."""
-        return self.expo_slider.get_value()
-
-    def set_value(self, value: float):
-        """
-        Return the value of the slider.
-        :param value: Value of the exposure time to set.
-        """
-        self.expo_slider.set_value(value)
-
 # %% Widgets
 class MenuWidget(QWidget):
     """
@@ -189,7 +122,6 @@ class MenuWidget(QWidget):
         self.buttons_signal = []
         self.buttons_enabled = []
         self.zoom_widget = AoiZoomOptionsWidget(self)
-        self.expo_widget = ExpoSliderWidget(title=translate('expo_slider'))
         self.actual_button = None
 
     def display_layout(self):
@@ -204,8 +136,6 @@ class MenuWidget(QWidget):
         if self.parent.parent.aoi is not None:
             self.layout.addWidget(self.zoom_widget)
             self.zoom_widget.zoom_changed.connect(self.action_zoom_changed)
-        if self.submenu is False:
-            self.layout.addWidget(self.expo_widget)
 
     def add_button(self, title: str, signal: str=None, option: bool=False):
         """
@@ -338,9 +268,6 @@ class MenuWidget(QWidget):
     def set_expo_enabled(self, value: bool):
         self.expo_widget.set_enabled(value)
 
-    def get_expo_value(self):
-        """Return the exposure time value from the slider."""
-        return self.expo_widget.expo_slider.get_value()
 
 class TitleWidget(QWidget):
     """
@@ -418,7 +345,6 @@ class MainWidget(QWidget):
 
         # Adding actions
         self.main_menu.menu_clicked.connect(self.menu_action)
-        self.main_menu.expo_widget.expo_changed.connect(self.action_expo_changed)
 
         # Fixing sizes
         width = self.parent.width()
@@ -453,14 +379,6 @@ class MainWidget(QWidget):
                         self.parent.camera = camera
                         self.parent.camera.init_camera()
                         self.parent.camera_thread.set_camera(self.parent.camera)
-                        # Update menu exposure time slider
-                        min_expo, max_expo = self.parent.camera.get_exposure_range()
-                        if max_expo > 400000:
-                            max_expo = 400000
-                        if min_expo < 100:
-                            min_expo = 100
-                        self.main_menu.expo_widget.set_min_max_values(min_expo/1000,
-                                                                      max_expo/1000)
                         # Init default parameters !
                         self.menu_action('images')
                         self.init_default_camera_params()
@@ -477,7 +395,6 @@ class MainWidget(QWidget):
         print('Default Parameters')
         if 'exposure' in self.default_parameters:
             self.parent.camera.set_exposure(int(self.default_parameters['exposure']))
-            self.main_menu.expo_widget.set_value(int(self.default_parameters['exposure'])/1000)
         if 'blacklevel' in self.default_parameters:
             self.parent.camera.set_black_level(int(self.default_parameters['blacklevel']))
         if 'framerate' in self.default_parameters:
@@ -622,16 +539,6 @@ class MainWidget(QWidget):
         self.clear_layout(TOP_RIGHT_ROW, TOP_RIGHT_COL)
         self.clear_layout(BOT_RIGHT_ROW, BOT_RIGHT_COL)
 
-        if self.parent.camera is not None:
-            if self.mode != 'images':
-                self.set_expo_checkable(True)
-                expo = self.parent.camera.get_exposure()
-                self.main_menu.expo_widget.set_value(expo/1000)
-            else:
-                self.set_expo_checkable(False)
-        else:
-            self.set_expo_checkable(False)
-
         if self.mode == 'images':
             if self.parent.raw_image is not None:
                 self.update_image()
@@ -692,12 +599,20 @@ class MainWidget(QWidget):
             self.set_bot_right_widget(self.bot_right_widget)
 
         elif self.mode == 'histo':
+            self.parent.zoom_histo_enabled = False
             # Display a label with definition or what to do in the options view ?
             self.update_image(aoi=True)
             self.top_right_widget = ImageHistogramWidget('Image Histogram')
+            self.top_right_widget.set_axis_labels(translate('x_label_histo'),
+                                                  translate('y_label_histo'))
             self.top_right_widget.set_background('white')
             self.layout.addWidget(self.top_right_widget, TOP_RIGHT_ROW, TOP_RIGHT_COL)
-            if self.parent.camera is None:
+            if self.parent.camera is not None:
+                # Open camera settings
+                self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
+                self.set_bot_right_widget(self.bot_right_widget)
+                self.bot_right_widget.update_parameters(auto_min_max=True)
+            else:
                 self.submenu_widget.set_enabled(2, False)
 
         elif self.mode == 'histo_space':
@@ -705,9 +620,16 @@ class MainWidget(QWidget):
             self.options_widget = HistoSpaceOptionsWidget(self)
             self.set_options_widget(self.options_widget)
             self.top_right_widget = ImageHistogramWidget('Image Histogram')
+            self.top_right_widget.set_axis_labels(translate('x_label_histo'),
+                                                  translate('y_label_histo'))
             self.top_right_widget.set_background('white')
             self.layout.addWidget(self.top_right_widget, TOP_RIGHT_ROW, TOP_RIGHT_COL)
-            if self.parent.camera is None:
+            if self.parent.camera is not None:
+                # Open camera settings
+                self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
+                self.set_bot_right_widget(self.bot_right_widget)
+                self.bot_right_widget.update_parameters(auto_min_max=True)
+            else:
                 self.submenu_widget.set_enabled(2, False)
 
         elif self.mode == 'histo_time':
@@ -718,8 +640,12 @@ class MainWidget(QWidget):
             if self.parent.camera is None:
                 self.submenu_widget.set_enabled(2, False)
             self.top_right_widget = ImageHistogramWidget('Image Histogram')
+            self.top_right_widget.set_axis_labels(translate('x_label_histo'),
+                                                  translate('y_label_histo'))
             self.top_right_widget.set_background('white')
             self.set_top_right_widget(self.top_right_widget)
+            self.bot_right_widget = HistoTimeChartWidget(self)
+            self.set_bot_right_widget(self.bot_right_widget)
 
         elif self.mode == 'quant_samp':
             self.update_image(aoi=True)
@@ -846,10 +772,6 @@ class MainWidget(QWidget):
         wi = (width*LEFT_WIDTH)//100
         he = (height*TOP_HEIGHT)//100
         self.top_left_widget.update_size(wi, he, aoi)
-
-    def set_expo_checkable(self, value: bool=False):
-        """Set checkable the exposure time changing slider."""
-        self.main_menu.expo_widget.set_checkable(value)
 
     def action_expo_changed(self, event):
         """Action performed when the exposure value in the main menu slider changed."""
