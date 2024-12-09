@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """*cmos_lab_app.py* file.
 
@@ -18,6 +19,7 @@ Creation : sept/2023
 Modification : oct/2024
 """
 import cv2
+import time
 import numpy as np
 from lensepy.images.conversion import quantize_image
 from matplotlib import pyplot as plt
@@ -657,6 +659,7 @@ class MainWindow(QMainWindow):
                     self.camera_thread.stop(timeout=False)
                 else:
                     self.camera_thread.stop()
+                time.sleep(0.01)
                 self.camera.stop_acquisition()
                 self.camera.disconnect()
             event.accept()

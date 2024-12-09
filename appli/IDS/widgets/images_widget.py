@@ -144,12 +144,6 @@ class ImagesCameraOpeningWidget(QWidget):
                 self.parent.menu_action('images')
                 self.parent.init_default_camera_params()
                 self.parent.bot_right_widget.update_parameters(auto_min_max=True)
-                '''
-                print(f'Expo = {self.parent.parent.camera.get_exposure()}')
-                print(f'FPS  = {self.parent.parent.camera.get_frame_rate()}')
-                print(f'Colo = {self.parent.parent.camera.get_color_mode()}')
-                print(f'ExpoRange = {self.parent.parent.camera.get_exposure_range()}')
-                '''
 
                 # Start Thread
                 self.parent.parent.image_bits_depth = get_bits_per_pixel(

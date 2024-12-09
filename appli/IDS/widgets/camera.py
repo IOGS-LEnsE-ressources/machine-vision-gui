@@ -241,7 +241,7 @@ class CameraSettingsWidget(QWidget):
                                              unit='gray', min_value=0, max_value=255, integer=True)
         self.slider_black_level.slider_changed.connect(self.slider_black_level_changing)
 
-        self.slider_frame_rate = SliderBloc(name=translate('name_slider_frame_rate'), unit='gray',
+        self.slider_frame_rate = SliderBloc(name=translate('name_slider_frame_rate'), unit='fps',
                                             min_value=0.5, max_value=10)
 
         self.layout.addWidget(self.label_title_camera_settings)

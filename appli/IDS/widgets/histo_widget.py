@@ -106,7 +106,7 @@ class HistoSpaceOptionsWidget(QWidget):
 
     snap_clicked = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, color: bool = False):
         """
         Default Constructor.
         :param parent: Parent widget of the histo space options widget.
@@ -123,6 +123,9 @@ class HistoSpaceOptionsWidget(QWidget):
         self.zoom_check = QCheckBox(translate('button_zoom_histo'))
         self.zoom_check.stateChanged.connect(self.clicked_action)
 
+        self.select_rgb = QComboBox()
+
+
         self.save_png_image_button = QPushButton(translate('button_save_png_image_spatial'))
         self.save_png_image_button.setStyleSheet(styleH2)
         self.save_png_image_button.setStyleSheet(unactived_button)
@@ -131,6 +134,9 @@ class HistoSpaceOptionsWidget(QWidget):
 
         self.layout.addWidget(self.label_title_spatial_analysis)
         self.layout.addWidget(self.zoom_check)
+        if color:
+            self.layout.addStretch()
+            self.layout.addWidget(self.select_rgb)
         self.layout.addStretch()
         self.layout.addWidget(self.save_png_image_button)
 
@@ -144,6 +150,8 @@ class HistoSpaceOptionsWidget(QWidget):
         elif sender == self.zoom_check:
             is_checked = self.zoom_check.isChecked()
             self.snap_clicked.emit(f'zoom_histo:{is_checked}')
+        elif sender == self.select_rgb:
+            print(self.select_rgb.currentIndex())
 
 
 class HistoTimeOptionsWidget(QWidget):

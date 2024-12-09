@@ -451,6 +451,7 @@ class MainWidget(QWidget):
                         self.init_default_camera_params()
                         # Start Thread
                         self.parent.image_bits_depth = get_bits_per_pixel(self.parent.camera.get_color_mode())
+                        print(camera.list_color_modes())
                         self.parent.camera_thread.start()
                         self.fast_mode = True
                     return True
@@ -471,7 +472,7 @@ class MainWidget(QWidget):
             self.parent.camera.set_black_level(int(self.default_parameters['blacklevel']))
         if 'colormode' in self.default_parameters:
             self.parent.camera.set_color_mode(self.default_parameters['colormode'])
-        '''
+
         camera = self.parent.camera
         print(f'Expo = {camera.get_exposure()}')
         print(f'Expo_R = {camera.get_exposure_range()}')
@@ -479,7 +480,7 @@ class MainWidget(QWidget):
         print(f'Colo = {camera.get_color_mode()}')
         print(f'ExpoRange = {camera.get_exposure_range()}')
         print(f'Clock = {camera.get_clock_frequency()}')
-        '''
+
 
     def clear_layout(self, row: int, column: int) -> None:
         """
@@ -627,7 +628,6 @@ class MainWidget(QWidget):
                                                       translate('y_label_histo'))
                 self.set_top_right_widget(self.top_right_widget)
                 self.bot_right_widget.update_parameters(auto_min_max=True)
-                # Display expo time setting in main menu
 
         elif self.mode == 'open_image':
             if self.parent.camera is not None:
