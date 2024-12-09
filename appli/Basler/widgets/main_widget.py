@@ -393,6 +393,8 @@ class MainWidget(QWidget):
     def init_default_camera_params(self):
         """Initialize a camera with default_config.txt."""
         print('Default Parameters')
+        if 'save_images_dir' in self.default_parameters:
+            self.parent.saved_dir = self.default_parameters['save_images_dir']
         if 'exposure' in self.default_parameters:
             self.parent.camera.set_exposure(int(self.default_parameters['exposure']))
         if 'blacklevel' in self.default_parameters:
