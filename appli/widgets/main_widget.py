@@ -686,10 +686,12 @@ class MainWidget(QWidget):
                                                   translate('y_label_histo'))
             self.top_right_widget.set_background('white')
             self.layout.addWidget(self.top_right_widget, TOP_RIGHT_ROW, TOP_RIGHT_COL)
-            self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
-            self.set_bot_right_widget(self.bot_right_widget)
-            self.bot_right_widget.update_parameters(auto_min_max=True)
-            if self.parent.camera is None:
+            if self.parent.camera is not None:
+                # Open camera settings
+                self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
+                self.set_bot_right_widget(self.bot_right_widget)
+                self.bot_right_widget.update_parameters(auto_min_max=True)
+            else:
                 self.submenu_widget.set_enabled(2, False)
 
         elif self.mode == 'histo_space':
@@ -701,10 +703,12 @@ class MainWidget(QWidget):
                                                   translate('y_label_histo'))
             self.top_right_widget.set_background('white')
             self.layout.addWidget(self.top_right_widget, TOP_RIGHT_ROW, TOP_RIGHT_COL)
-            self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
-            self.set_bot_right_widget(self.bot_right_widget)
-            self.bot_right_widget.update_parameters(auto_min_max=True)
-            if self.parent.camera is None:
+            if self.parent.camera is not None:
+                # Open camera settings
+                self.bot_right_widget = CameraSettingsWidget(self, self.parent.camera)
+                self.set_bot_right_widget(self.bot_right_widget)
+                self.bot_right_widget.update_parameters(auto_min_max=True)
+            else:
                 self.submenu_widget.set_enabled(2, False)
 
         elif self.mode == 'histo_time':

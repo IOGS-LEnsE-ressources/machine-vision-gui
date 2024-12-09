@@ -382,7 +382,8 @@ class MainWindow(QMainWindow):
                                                            zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'save_png':
-            if self.saved_image is not None:
+            if self.saved_image is not None or self.raw_image is not None:
+                self.saved_image = self.raw_image
                 image = get_aoi_array(self.saved_image, self.aoi)
                 bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth+1)
                 bins, hist_data = process_hist_from_array(image, bins)
@@ -403,6 +404,8 @@ class MainWindow(QMainWindow):
                           f'space_histo.png', dir_path=dir_path,
                           x_label=translate('x_label_histo'),
                           y_label=translate('y_label_histo'))
+            else:
+                image = get_aoi_array(self.raw_image, self.aoi)
             self.central_widget.top_right_widget.set_image(image, zoom_mode=self.zoom_histo_enabled,
                                                            zoom_target=1)
         elif 'zoom_histo' in event:

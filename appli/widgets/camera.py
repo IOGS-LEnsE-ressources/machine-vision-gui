@@ -293,30 +293,31 @@ class CameraSettingsWidget(QWidget):
         """Update displayed parameters values, from the camera.
 
         """
-        if auto_min_max:
-            exposure_min, exposure_max = self.camera.get_exposure_range()
-            if exposure_max > 3000000:
-                exposure_max = 3000000
-            if exposure_min < 100:
-                exposure_min = 100
-            self.slider_exposure_time.set_min_max_slider_values(round(exposure_min / 1000, 1),
-                                                                exposure_max // 1000)
-            bl_min, bl_max = self.camera.get_black_level_range()
-            self.slider_black_level.set_min_max_slider_values(bl_min, bl_max)
-        if expo_value != -1:
-            exposure_time = expo_value
-        else:
-            exposure_time = self.camera.get_exposure()
-        if fps_value != -1:
-            fps = fps_value
-        else:
-            fps = self.camera.get_frame_rate()
-        self.slider_exposure_time.set_value(exposure_time / 1000)
-        bl = self.camera.get_black_level()
-        self.slider_black_level.set_value(bl)
-        self.slider_frame_rate.set_value(fps)
-        self.slider_exposure_time.slider_changed.connect(self.slider_exposure_time_changing)
-        self.slider_frame_rate.slider_changed.connect(self.slider_frame_rate_changing)
+        if self.parent.parent.camera is not None:
+            if auto_min_max:
+                exposure_min, exposure_max = self.camera.get_exposure_range()
+                if exposure_max > 3000000:
+                    exposure_max = 3000000
+                if exposure_min < 100:
+                    exposure_min = 100
+                self.slider_exposure_time.set_min_max_slider_values(round(exposure_min / 1000, 1),
+                                                                    exposure_max // 1000)
+                bl_min, bl_max = self.camera.get_black_level_range()
+                self.slider_black_level.set_min_max_slider_values(bl_min, bl_max)
+            if expo_value != -1:
+                exposure_time = expo_value
+            else:
+                exposure_time = self.camera.get_exposure()
+            if fps_value != -1:
+                fps = fps_value
+            else:
+                fps = self.camera.get_frame_rate()
+            self.slider_exposure_time.set_value(exposure_time / 1000)
+            bl = self.camera.get_black_level()
+            self.slider_black_level.set_value(bl)
+            self.slider_frame_rate.set_value(fps)
+            self.slider_exposure_time.slider_changed.connect(self.slider_exposure_time_changing)
+            self.slider_frame_rate.slider_changed.connect(self.slider_frame_rate_changing)
 
     def set_enabled(self, value: bool):
         """
