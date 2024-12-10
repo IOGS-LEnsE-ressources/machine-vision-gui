@@ -412,11 +412,13 @@ class MainWindow(QMainWindow):
                 self.zoom_histo_enabled = True
             else:
                 self.zoom_histo_enabled = False
+            '''
             pixel_index = self.central_widget.options_widget.get_pixel_index()
             pixels = self.central_widget.options_widget.get_pixels(pixel_index)
             self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
             self.central_widget.top_right_widget.set_image(pixels, zoom_mode=self.zoom_histo_enabled,
                                                            zoom_target=1)
+            '''
 
         # Display the AOI.
         self.central_widget.update_image(aoi=True)

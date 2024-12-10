@@ -345,6 +345,7 @@ class HistoTimeChartWidget(QWidget):
         self.time_chart.set_background('white')
 
         self.layout.addWidget(self.time_chart)
+        self.layout.addStretch()
 
     def set_data(self, x_axis, y_axis, x_label: str = '', y_label: str = ''):
         """
