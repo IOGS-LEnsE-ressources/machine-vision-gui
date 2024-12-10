@@ -4,11 +4,11 @@
 language;FR
 languages;FR,EN
 autoconnect;Yes
-brandname;Basler
-clock_freq;15
+clock_freq;10
 exposure;40000
-blacklevel;0
-framerate;0.5
+blacklevel;100
+framerate;5
+brandname;IDS
 colormode;Mono10
 
 # AOI
@@ -18,9 +18,11 @@ aoi_w;500
 aoi_h;400
 
 # Default directory
-save_images_dir;D:/_old_dd/
+# save_images_dir;D:/_old_dd/
 
-# Default Menu
-off_menu;16
+## Default Menu
+#off_menu;16
+# CMOS Camera
+off_menu;8,9,11,12,14,15,16
 type1;3,5,6,8,9,11,12,14,15
 type2;5,6,8,9,11,12,14,15

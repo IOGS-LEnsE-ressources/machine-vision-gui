@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """*cmos_lab_app.py* file.
 
@@ -18,6 +19,7 @@ Creation : sept/2023
 Modification : oct/2024
 """
 import cv2
+import time
 import numpy as np
 from lensepy.images.conversion import quantize_image
 from matplotlib import pyplot as plt
@@ -26,8 +28,28 @@ from widgets.main_widget import *
 from widgets.aoi_select_widget import get_aoi_array
 from lensecam.camera_thread import CameraThread
 from lensecam.ids.camera_ids import get_bits_per_pixel
-from PyQt6.QtWidgets import QMainWindow, QApplication
+from PyQt6.QtWidgets import QMainWindow, QApplication, QFileDialog
 from lensepy.images.processing import *
+from pathlib import Path
+
+
+def save_file_path(default_file_path: str, file_name: str = "", dialog: bool = True) -> str:
+    if default_file_path is not None:
+        if dialog:
+            file_path, _ = QFileDialog.getSaveFileName(None, "PNG/JPG Save",
+                                                       f"{default_file_path}/{file_name}",
+                                                       "Images (*.png *.jpg *.jpeg)")
+        else:
+            file_path = f"{default_file_path}/{file_name}"
+    else:
+        default_file_path = Path.home() # user home
+        if dialog:
+            file_path, _ = QFileDialog.getSaveFileName(None, "PNG/JPG Save",
+                                                       f"{default_file_path}/{file_name}",
+                                                       "Images (*.png *.jpg *.jpeg)")
+        else:
+            file_path = f"{default_file_path}/{file_name}"
+    return file_path, default_file_path
 
 class MainWindow(QMainWindow):
     """
@@ -51,6 +73,7 @@ class MainWindow(QMainWindow):
         self.fast_mode = False
         self.zoom_histo_enabled = False
         self.image_bits_depth = 8
+        self.saved_dir = None
         # Displayed image
         self.check_diff = False
         self.kernel_type = None
@@ -61,6 +84,7 @@ class MainWindow(QMainWindow):
         self.camera_index = 0  # TO UPDATE !! when a new camera is selected with a camera_list object
         self.camera_thread = CameraThread()
         self.camera_thread.image_acquired.connect(self.thread_update_image)
+        self.camera_exposure = 0
         # GUI structure
         self.central_widget = MainWidget(self)
         self.setCentralWidget(self.central_widget)
@@ -76,6 +100,8 @@ class MainWindow(QMainWindow):
         Action performed by an event in the main widget.
         :param event: Event that triggered the action.
         """
+        if self.camera is not None:
+            print(f'FPS = {self.camera.get_frame_rate()}')
         if self.raw_image is not None:
             size = self.raw_image.shape[1] * self.raw_image.shape[0]
             self.fast_mode = size > 1e5 # Fast mode if number of pixels > 1e5
@@ -207,11 +233,17 @@ class MainWindow(QMainWindow):
         elif self.central_widget.mode == 'histo':
             self.action_histo_space('live')
         elif self.central_widget.mode == 'histo_space':
-            self.central_widget.update_image(aoi=True)
+            self.action_histo_space('snap')
         elif self.central_widget.mode == 'histo_time':
             self.central_widget.update_image(aoi=True)
             if self.central_widget.options_widget.is_acquiring():
                 self.central_widget.options_widget.increase_counter(self.raw_image)
+                list_values = np.array(self.central_widget.options_widget.pixels_value)
+                time_values = np.linspace(1, list_values[0].shape[0], list_values[0].shape[0])
+                self.central_widget.bot_right_widget.set_data(time_values, list_values[0].squeeze(),
+                                                              x_label=translate('sample_number'),
+                                                              y_label=translate('pixel_value'))
+                self.central_widget.bot_right_widget.update_chart(20)
 
         elif self.central_widget.mode == 'quant_samp':
             self.central_widget.update_image(aoi=True)
@@ -304,8 +336,8 @@ class MainWindow(QMainWindow):
             min_expo = 100
         if max_expo > 400000:
             max_expo = 400000
-        self.central_widget.main_menu.expo_widget.set_min_max_values(min_expo/1000,
-                                                                     max_expo/1000)
+        min_expo = round(min_expo/1000, 1)
+        max_expo = round(max_expo/1000, 1)
         # Start Thread
         self.image_bits_depth = get_bits_per_pixel(self.camera.get_color_mode())
         self.camera_thread.start()
@@ -338,33 +370,54 @@ class MainWindow(QMainWindow):
 
     def action_histo_space(self, event):
         """Action performed when an event occurred in the histo_space options widget."""
-        image = get_aoi_array(self.raw_image, self.aoi)
-        print(self.zoom_histo_enabled)
         if event == 'snap':
             self.saved_image = self.raw_image.copy()
+            image = get_aoi_array(self.raw_image, self.aoi)
             self.central_widget.top_right_widget.set_image(image,
                                                            zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'live':
+            image = get_aoi_array(self.raw_image, self.aoi)
             self.central_widget.top_right_widget.set_image(image, self.fast_mode,
                                                            zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'save_png':
-            if self.saved_image is not None:
+            if self.saved_image is not None or self.raw_image is not None:
+                self.saved_image = self.raw_image
                 image = get_aoi_array(self.saved_image, self.aoi)
                 bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth+1)
                 bins, hist_data = process_hist_from_array(image, bins)
-                # ZOOM TO TEST !!
-                save_hist(image, hist_data, bins,
-                               f'Image Histogram',
-                               f'image_histo.png')
+                if self.zoom_histo_enabled:
+                    target = 1
+                    # Find min index
+                    min_index = np.argmax(hist_data > target) - 10
+                    if min_index < 0:
+                        min_index = 0
+                    # Find max index
+                    max_index = len(hist_data) - 1 - np.argmax(np.flip(hist_data) > target) + 10
+                    if max_index > len(bins):
+                        max_index = len(bins)
+                    hist_data = hist_data[min_index:max_index]
+                    bins = bins[min_index:max_index+1]
+                _, dir_path  = save_file_path(self.saved_dir, f'Image_histo.png', dialog=False)
+                save_hist(image, hist_data, bins, f'Image Histogram',
+                          f'space_histo.png', dir_path=dir_path,
+                          x_label=translate('x_label_histo'),
+                          y_label=translate('y_label_histo'))
+            else:
+                image = get_aoi_array(self.raw_image, self.aoi)
+            self.central_widget.top_right_widget.set_image(image, zoom_mode=self.zoom_histo_enabled,
+                                                           zoom_target=1)
         elif 'zoom_histo' in event:
-            print('Zoom OK')
-            if self.saved_image is not None:
-                if 'True' in event:
-                    self.zoom_histo_enabled = True
-                else:
-                    self.zoom_histo_enabled = False
+            if 'True' in event:
+                self.zoom_histo_enabled = True
+            else:
+                self.zoom_histo_enabled = False
+            pixel_index = self.central_widget.options_widget.get_pixel_index()
+            pixels = self.central_widget.options_widget.get_pixels(pixel_index)
+            self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
+            self.central_widget.top_right_widget.set_image(pixels, zoom_mode=self.zoom_histo_enabled,
+                                                           zoom_target=1)
 
         # Display the AOI.
         self.central_widget.update_image(aoi=True)
@@ -378,22 +431,47 @@ class MainWindow(QMainWindow):
             pixels = self.central_widget.options_widget.get_pixels(0)
             self.central_widget.options_widget.set_enabled_save()
             self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
-            self.central_widget.top_right_widget.set_image(pixels)
+            self.central_widget.top_right_widget.set_image(pixels, zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'pixel_changed':
             pixel_index = self.central_widget.options_widget.get_pixel_index()
             pixels = self.central_widget.options_widget.get_pixels(pixel_index)
             self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
-            self.central_widget.top_right_widget.set_image(pixels)
+            self.central_widget.top_right_widget.set_image(pixels, zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'save_hist_time':
             pixel_index = self.central_widget.options_widget.get_pixel_index()
             pixels = self.central_widget.options_widget.get_pixels(pixel_index)
             bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth+1)
             bins, hist_data = process_hist_from_array(pixels, bins)
-            save_hist(pixels, hist_data, bins,
-                      f'Time Histogram - Pixel {pixel_index+1}',
-                      f'time_histo_pixel_{pixel_index+1}.png')
+            if self.zoom_histo_enabled:
+                target = 1
+                # Find min index
+                min_index = np.argmax(hist_data > target) - 10
+                if min_index < 0:
+                    min_index = 0
+                # Find max index
+                max_index = len(hist_data) - 1 - np.argmax(np.flip(hist_data) > target) + 10
+                if max_index > len(bins):
+                    max_index = len(bins)
+                hist_data = hist_data[min_index:max_index]
+                bins = bins[min_index:max_index+1]
+            _, dir_path = save_file_path(self.saved_dir, f'Image_histo_time.png', dialog=False)
+            save_hist(pixels, hist_data, bins, f'Time Histogram - Pixel {pixel_index+1}',
+                      f'time_histo_pixel_{pixel_index+1}.png', dir_path=dir_path,
+                      x_label=translate('x_label_histo'),
+                      y_label=translate('y_label_histo'))
+        elif 'zoom_histo' in event:
+            if self.saved_image is not None:
+                if 'True' in event:
+                    self.zoom_histo_enabled = True
+                else:
+                    self.zoom_histo_enabled = False
+            pixel_index = self.central_widget.options_widget.get_pixel_index()
+            pixels = self.central_widget.options_widget.get_pixels(pixel_index)
+            self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
+            self.central_widget.top_right_widget.set_image(pixels, zoom_mode=self.zoom_histo_enabled,
+                                                           zoom_target=1)
 
     def action_quantize_image(self, event):
         """Action performed when an event occurred in the quantization options widget."""
@@ -585,6 +663,7 @@ class MainWindow(QMainWindow):
                     self.camera_thread.stop(timeout=False)
                 else:
                     self.camera_thread.stop()
+                time.sleep(0.01)
                 self.camera.stop_acquisition()
                 self.camera.disconnect()
             event.accept()

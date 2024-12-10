@@ -8,16 +8,18 @@ This file contains graphical elements to display histograms of images in a widge
 .. moduleauthor:: Julien VILLEMEJANE (PRAG LEnsE) <julien.villemejane@institutoptique.fr>
 Creation : oct/2024
 """
+
+import sys, os
 from lensepy import *
 from lensepy.css import *
-import sys, os
+from lensepy.pyqt6.widget_xy_chart import *
 import numpy as np
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QComboBox, QPushButton, QLineEdit, QProgressBar, QCheckBox,
     QMessageBox, QFileDialog
 )
-from PyQt6.QtCore import pyqtSignal, QDir
+from PyQt6.QtCore import pyqtSignal, QDir, Qt
 from matplotlib import pyplot as plt
 
 
@@ -33,7 +35,8 @@ def process_hist_from_array(array: np.ndarray, bins: list) -> (np.ndarray, np.nd
 
 def save_hist(data: np.ndarray, data_hist: np.ndarray, bins: np.ndarray,
               title: str = 'Image Histogram', file_name: str = 'histogram.png',
-              informations: str = ''):
+              informations: str = '', dir_path: str = '',
+              x_label: str = '', y_label: str = ''):
     """
     Create a PNG from histogram data.
     :param data: Data to process.
@@ -42,6 +45,7 @@ def save_hist(data: np.ndarray, data_hist: np.ndarray, bins: np.ndarray,
     :param title: Title of the figure. Default: Image Histogram.
     :param file_name: Name of the file to store the PNG image. Default: histogram.png.
     :param informations: Informations to display in the graph.
+    :param dir_path: Default directory.
     """
     # Create histogram graph
     n = len(bins)
@@ -54,6 +58,8 @@ def save_hist(data: np.ndarray, data_hist: np.ndarray, bins: np.ndarray,
     plt.bar(bins[:-1], data_hist, width=np.diff(bins),
             edgecolor='black', alpha=0.75, color='blue')
     plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
     text_str = f'Mean = {mean_data:.2f}\nStdDev = {np.std(data):.2f}'
     plt.text(x_text_pos, 0.95, text_str, fontsize=10, verticalalignment='top',
              horizontalalignment='right',
@@ -64,10 +70,16 @@ def save_hist(data: np.ndarray, data_hist: np.ndarray, bins: np.ndarray,
              transform=plt.gca().transAxes, bbox=dict(facecolor='white', alpha=0.5))
 
     # histogram to store in a png file - and a txt file (array) ??
-    default_dir = QDir.homePath()
-    file_path, _ = QFileDialog.getSaveFileName(None, translate('save_histogram_title_window'),
-                                               f'{default_dir}/{file_name}',
-                                               "Images PNG (*.png)")
+    if dir_path == '':
+        default_dir = QDir.homePath()
+        file_path, _ = QFileDialog.getSaveFileName(None, translate('save_histogram_title_window'),
+                                                   f'{default_dir}/{file_name}',
+                                                   "Images PNG (*.png)")
+    else:
+        file_path, _ = QFileDialog.getSaveFileName(None, translate('save_histogram_title_window'),
+                                                   f'{dir_path}/{file_name}',
+                                                   "Images PNG (*.png)")
+
     if file_path:
         # create an image of the histogram of the saved_image
         plt.savefig(file_path)
@@ -94,7 +106,7 @@ class HistoSpaceOptionsWidget(QWidget):
 
     snap_clicked = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, color: bool = False):
         """
         Default Constructor.
         :param parent: Parent widget of the histo space options widget.
@@ -108,25 +120,23 @@ class HistoSpaceOptionsWidget(QWidget):
         self.label_title_spatial_analysis = QLabel(translate('title_histo_analysis'))
         self.label_title_spatial_analysis.setStyleSheet(styleH1)
 
-        self.snap_button = QPushButton(translate('button_acquire_histo'))
-        self.snap_button.setStyleSheet(styleH2)
-        self.snap_button.setStyleSheet(unactived_button)
-        self.snap_button.setFixedHeight(BUTTON_HEIGHT)
-        self.snap_button.clicked.connect(self.clicked_action)
-
         self.zoom_check = QCheckBox(translate('button_zoom_histo'))
         self.zoom_check.stateChanged.connect(self.clicked_action)
 
+        self.select_rgb = QComboBox()
+
+
         self.save_png_image_button = QPushButton(translate('button_save_png_image_spatial'))
         self.save_png_image_button.setStyleSheet(styleH2)
-        self.save_png_image_button.setStyleSheet(disabled_button)
-        self.save_png_image_button.setFixedHeight(OPTIONS_BUTTON_HEIGHT)
+        self.save_png_image_button.setStyleSheet(unactived_button)
+        self.save_png_image_button.setFixedHeight(BUTTON_HEIGHT)
         self.save_png_image_button.clicked.connect(self.clicked_action)
-        self.save_png_image_button.setEnabled(False)
 
         self.layout.addWidget(self.label_title_spatial_analysis)
-        self.layout.addWidget(self.snap_button)
         self.layout.addWidget(self.zoom_check)
+        if color:
+            self.layout.addStretch()
+            self.layout.addWidget(self.select_rgb)
         self.layout.addStretch()
         self.layout.addWidget(self.save_png_image_button)
 
@@ -135,15 +145,13 @@ class HistoSpaceOptionsWidget(QWidget):
 
     def clicked_action(self):
         sender = self.sender()
-        if sender == self.snap_button:
-            self.snap_clicked.emit('snap')
-            self.save_png_image_button.setStyleSheet(unactived_button)
-            self.save_png_image_button.setEnabled(True)
-        elif sender == self.save_png_image_button:
+        if sender == self.save_png_image_button:
             self.snap_clicked.emit('save_png')
         elif sender == self.zoom_check:
             is_checked = self.zoom_check.isChecked()
             self.snap_clicked.emit(f'zoom_histo:{is_checked}')
+        elif sender == self.select_rgb:
+            print(self.select_rgb.currentIndex())
 
 
 class HistoTimeOptionsWidget(QWidget):
@@ -169,6 +177,16 @@ class HistoTimeOptionsWidget(QWidget):
         self.label_title_time_analysis = QLabel(translate('title_time_analysis'))
         self.label_title_time_analysis.setStyleSheet(styleH1)
 
+        # Camera parameters
+        self.label_params_camera = QLabel('')
+        expo = round(self.parent.parent.camera.get_exposure() / 1000, 1)
+        fps = round(self.parent.parent.camera.get_frame_rate(), 1)
+        bl = self.parent.parent.camera.get_black_level()
+        text = f'Expo = {expo} ms / FPS = {fps} / BL = {bl}'
+        self.label_params_camera.setText(text)
+        self.label_params_camera.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label_params_camera.setStyleSheet(styleH2)
+
         # Number of points
         self.nb_of_points_widget = QWidget()
         self.nb_of_points_sublayout = QHBoxLayout()
@@ -184,17 +202,20 @@ class HistoTimeOptionsWidget(QWidget):
         self.start_button = QPushButton(translate('button_start_time'))
         self.start_button.setStyleSheet(styleH2)
         self.start_button.setStyleSheet(unactived_button)
-        self.start_button.setFixedHeight(OPTIONS_BUTTON_HEIGHT)
+        self.start_button.setFixedHeight(BUTTON_HEIGHT)
         self.start_button.clicked.connect(self.clicked_action)
 
         self.progress_bar = QProgressBar(self, objectName="IOGSProgressBar")
 
-        self.save_histo_button = QPushButton(translate('button_save_histo_spatial'))
+        self.save_histo_button = QPushButton(translate('button_save_histo_time'))
         self.save_histo_button.setStyleSheet(styleH2)
         self.save_histo_button.setStyleSheet(disabled_button)
-        self.save_histo_button.setFixedHeight(OPTIONS_BUTTON_HEIGHT)
+        self.save_histo_button.setFixedHeight(BUTTON_HEIGHT)
         self.save_histo_button.clicked.connect(self.clicked_action)
         self.save_histo_button.setEnabled(False)
+
+        self.zoom_check = QCheckBox(translate('button_zoom_histo'))
+        self.zoom_check.stateChanged.connect(self.clicked_action)
 
         self.pixel_select_widget = QWidget()
         self.pixel_select_layout = QHBoxLayout()
@@ -211,11 +232,13 @@ class HistoTimeOptionsWidget(QWidget):
         self.pixel_select_layout.addWidget(self.pixel_select)
 
         self.layout.addWidget(self.label_title_time_analysis)
+        self.layout.addWidget(self.label_params_camera)
         self.layout.addWidget(self.start_button)
         self.layout.addWidget(self.nb_of_points_widget)
         self.layout.addWidget(self.progress_bar)
         self.layout.addStretch()
         self.layout.addWidget(self.pixel_select_widget)
+        self.layout.addWidget(self.zoom_check)
         self.layout.addStretch()
         self.layout.addWidget(self.save_histo_button)
         self.layout.addStretch()
@@ -235,6 +258,9 @@ class HistoTimeOptionsWidget(QWidget):
             self.start_acq_clicked.emit('save_hist_time')
         elif sender == self.pixel_select:
             self.start_acq_clicked.emit('pixel_changed')
+        elif sender == self.zoom_check:
+            is_checked = self.zoom_check.isChecked()
+            self.start_acq_clicked.emit(f'zoom_histo:{is_checked}')
 
     def is_acquiring(self):
         """Return true if the acquisition is running."""
@@ -301,3 +327,48 @@ class HistoTimeOptionsWidget(QWidget):
         """Set random pixels X and Y coordinates."""
         self.image_x = pixels_x
         self.image_y = pixels_y
+
+class HistoTimeChartWidget(QWidget):
+
+    def __init__(self, parent):
+        """
+
+        """
+        super().__init__(parent=None)
+        self.layout = QVBoxLayout()
+        self.parent = parent
+
+        # Graph
+        # -----
+        self.time_chart = XYChartWidget(self)
+        self.time_chart.set_title(translate('title_time_analysis'))
+        self.time_chart.set_background('white')
+
+        self.layout.addWidget(self.time_chart)
+
+    def set_data(self, x_axis, y_axis, x_label: str = '', y_label: str = ''):
+        """
+        Set the X and Y axis data to display on the chart.
+
+        Parameters
+        ----------
+        x_axis : Numpy array
+            X-axis value to display.
+        y_axis : Numpy array
+            Y-axis value to display.
+        """
+        self.time_chart.set_data(x_axis, y_axis, x_label=x_label, y_label=y_label)
+
+    def update_chart(self, number_samples: int = 50):
+        """
+        Set the X and Y axis data to display on the chart.
+
+        Parameters
+        ----------
+        x_axis : Numpy array
+            X-axis value to display.
+        y_axis : Numpy array
+            Y-axis value to display.
+        """
+        self.time_chart.refresh_chart()
+        self.time_chart.display_last(number_samples)
