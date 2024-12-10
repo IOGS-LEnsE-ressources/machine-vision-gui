@@ -8,7 +8,7 @@ brandname;Basler
 clock_freq;15
 exposure;40000
 blacklevel;0
-framerate;5
+framerate;0.5
 colormode;Mono10
 
 # AOI

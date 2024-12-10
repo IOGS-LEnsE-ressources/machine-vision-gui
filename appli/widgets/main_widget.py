@@ -480,7 +480,7 @@ class MainWidget(QWidget):
         if 'blacklevel' in self.default_parameters:
             self.parent.camera.set_black_level(int(self.default_parameters['blacklevel']))
         if 'framerate' in self.default_parameters:
-            self.parent.camera.set_frame_rate(int(self.default_parameters['framerate']))
+            self.parent.camera.set_frame_rate(float(self.default_parameters['framerate']))
         if 'colormode' in self.default_parameters:
             print(f'Color mode = {self.default_parameters["colormode"]}')
             self.parent.camera.set_color_mode(self.default_parameters['colormode'])
