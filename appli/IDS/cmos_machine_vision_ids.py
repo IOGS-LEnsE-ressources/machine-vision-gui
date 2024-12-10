@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """*cmos_lab_app.py* file.
 
