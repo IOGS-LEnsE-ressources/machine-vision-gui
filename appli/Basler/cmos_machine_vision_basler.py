@@ -83,7 +83,7 @@ class MainWindow(QMainWindow):
         # GUI structure
         self.central_widget = MainWidget(self)
         self.setCentralWidget(self.central_widget)
-        load_menu('./config/menu.txt', self.central_widget.main_menu)
+        load_menu('menu/menu.txt', self.central_widget.main_menu)
         if self.central_widget.auto_connect_camera():
             self.main_action('images')
         self.central_widget.main_signal.connect(self.main_action)

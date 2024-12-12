@@ -273,6 +273,89 @@ class SmoothFilterOptionsWidget(QWidget):
         return output_image
 
 
+class SmoothFilterOptionsWidget(QWidget):
+    """
+    Widget containing the smooth filters options.
+    """
+
+    options_changed = pyqtSignal(str)
+
+    def __init__(self, parent):
+        """
+        Default Constructor.
+        :param parent: Parent window of the main widget.
+        """
+        super().__init__(parent=None)
+        self.layout = QVBoxLayout()
+        self.parent = parent
+
+        self.filter = Smooth.NOFILTER
+
+        self.check_diff = QCheckBox(text=translate('check_diff_image'))
+        self.check_diff.stateChanged.connect(self.action_button_clicked)
+
+        self.filter_type = ButtonSelectionWidget(parent=self, name=translate('filtre_type'))
+        self.list_options = [translate('filter_blur'),
+                             translate('filter_gaussian'),
+                             translate('filter_median')]
+        self.selected_type = 1
+        self.filter_type.set_list_options(self.list_options)
+        self.filter_type.clicked.connect(self.action_button_clicked)
+        self.filter_type.activate_index(self.selected_type)
+
+        self.kernel_choice = KernelChoiceWidget(name='label_kernel_size', choice=False)
+        self.kernel_choice.kernel_choice_changed.connect(self.action_button_clicked)
+
+        self.slider_sigma = SliderBloc(name=translate('gaussian_sigma'), unit='',
+                                      min_value=0, max_value=5)
+        self.slider_sigma.set_value(1)
+        self.slider_sigma.set_enabled(False)
+        self.slider_sigma.slider_changed.connect(self.action_button_clicked)
+
+        self.layout.addWidget(self.check_diff)
+        self.layout.addWidget(self.filter_type)
+        self.layout.addWidget(self.kernel_choice)
+        self.layout.addStretch()
+        self.layout.addWidget(self.slider_sigma)
+        self.layout.addStretch()
+        self.setLayout(self.layout)
+
+    def action_button_clicked(self, event):
+        """Action performed when a button is clicked."""
+        sender = self.sender()
+        if sender == self.check_diff:
+            check_ok = 1 if self.check_diff.isChecked() else 0
+            self.options_changed.emit(f'check_diff:{check_ok}')
+        elif sender == self.filter_type:
+            f_type = self.filter_type.get_selection()
+            self.slider_sigma.set_enabled(False)
+            if f_type == translate('filter_blur'):
+                self.filter = Smooth.BLUR
+            elif f_type == translate('filter_gaussian'):
+                self.filter = Smooth.GAUSS
+                self.slider_sigma.set_enabled(True)
+            elif f_type == translate('filter_median'):
+                self.filter = Smooth.MEDIAN
+        elif sender == self.slider_sigma:
+            sigma = self.slider_sigma.get_value()
+            print(f'Sigma Changed ! {sigma}')
+
+        self.options_changed.emit('smooth_filter')
+
+    def get_selection(self, image: np.ndarray):
+        k_size = self.kernel_choice.get_kernel_size()
+        if self.filter == Smooth.BLUR:
+            output_image = cv2.blur(image, (k_size, k_size))
+        elif self.filter == Smooth.GAUSS:
+            sigma_x = self.slider_sigma.get_value()
+            output_image = cv2.GaussianBlur(image, (k_size, k_size), sigmaX=sigma_x)
+        elif self.filter == Smooth.MEDIAN:
+            output_image = cv2.medianBlur(image, k_size)
+        else:
+            return None
+        return output_image
+
+
 if __name__ == '__main__':
     from PyQt6.QtWidgets import QApplication
 
