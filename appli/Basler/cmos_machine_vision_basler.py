@@ -17,6 +17,8 @@ https://iogs-lense-ressources.github.io/camera-gui/contents/appli_CMOS_labwork.h
 Creation : sept/2023
 Modification : oct/2024
 """
+from pathlib import Path
+
 import cv2
 import numpy as np
 from lensepy.images.conversion import quantize_image
@@ -24,7 +26,7 @@ from lensepy.images.conversion import quantize_image
 from widgets.main_widget import *
 from lensecam.camera_thread import CameraThread
 from lensecam.ids.camera_ids import get_bits_per_pixel
-from PyQt6.QtWidgets import QMainWindow, QApplication
+from PyQt6.QtWidgets import QMainWindow, QApplication, QFileDialog
 from lensepy.images.processing import *
 
 def save_file_path(default_file_path: str, file_name: str = "", dialog: bool = True) -> str:
@@ -142,7 +144,7 @@ class MainWindow(QMainWindow):
         elif self.central_widget.mode == 'histo_space':
             self.central_widget.options_widget.snap_clicked.connect(self.action_histo_space)
             aoi_array = get_aoi_array(self.raw_image, self.aoi)
-            if aoi_array.shape[0] * aoi_array.shape[1] < 1000:
+            if aoi_array.shape[0] * aoi_array.shape[1] < 1000 or self.camera is None:
                 fast = False
             else:
                 fast = True
@@ -507,7 +509,6 @@ class MainWindow(QMainWindow):
     def action_enhance_contrast(self, event):
         """Action performed when an event occurred in the erosion/dilation options widget."""
         aoi_array = get_aoi_array(self.image, self.aoi)
-        print(f'Shape = {self.image.shape}')
         delta_image_depth = (self.image_bits_depth - 8)  # Power of 2 for depth conversion
         min_value = int(self.central_widget.options_widget.get_min() // 2**delta_image_depth)
         max_value = int(self.central_widget.options_widget.get_max() // 2**delta_image_depth)
@@ -618,11 +619,9 @@ class MainWindow(QMainWindow):
             self.check_diff = True
 
         aoi_array = get_aoi_array(self.image, self.aoi)
-        eroded = aoi_array #self.central_widget.options_widget.get_selection(aoi_array)
-        '''
+        eroded = self.central_widget.options_widget.get_selection(aoi_array)
         self.central_widget.bot_right_widget.set_bit_depth(8)
         self.central_widget.bot_right_widget.set_images(aoi_array, eroded)
-        '''
         if self.check_diff:
             eroded = aoi_array - eroded
         self.central_widget.top_right_widget.set_image_from_array(eroded)

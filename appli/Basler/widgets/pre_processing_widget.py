@@ -148,6 +148,7 @@ class ContrastAdjustOptionsWidget(QWidget):
         if min_value >= max_value:
             max_value += 1
             self.slider_threshold_max.set_value(min_value+1)
+        self.options_clicked.emit('contrast_enhance')
 
     def get_max(self):
         """Return the value of the maximum slider."""

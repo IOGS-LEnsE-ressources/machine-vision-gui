@@ -696,7 +696,7 @@ class MainWidget(QWidget):
                                            name2=translate('histo_contr_bright_image'))
 
         elif self.mode == 'enhance_contrast':
-            # self.submode = 'enhance_contrast'
+            self.submode = 'enhance_contrast'
             self.update_image(aoi=True)
             self.options_widget = ContrastAdjustOptionsWidget(self)
             self.set_options_widget(self.options_widget)
@@ -745,6 +745,9 @@ class MainWidget(QWidget):
             self.set_options_widget(self.options_widget)
             self.top_right_widget = ImagesDisplayWidget(self)
             self.set_top_right_widget(self.top_right_widget)
+            self.bot_right_widget = DoubleHistoWidget(self, name_histo_1='Original Image',
+                                                      name_histo_2='Modified Image')
+            self.set_bot_right_widget(self.bot_right_widget)
 
         self.main_signal.emit(event)
 

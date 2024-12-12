@@ -237,7 +237,8 @@ class ImagesDisplayWidget(QWidget):
         self.image = np.array(pixels, dtype='uint8')
         image_to_display = self.image
         if self.image.shape[1] > self.width or self.image.shape[0] > self.height:
-            image_to_display = resize_image_ratio(self.image, self.height-50, self.width-50)
+            if self.width-30 > 0 and self.height-30 > 0:
+                image_to_display = resize_image_ratio(self.image, self.height-30, self.width-30)
         qimage = array_to_qimage(image_to_display)
         if aoi:
             painter = QPainter(qimage)

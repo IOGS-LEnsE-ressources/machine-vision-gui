@@ -150,7 +150,7 @@ class MainWindow(QMainWindow):
         elif self.central_widget.mode == 'histo_space':
             self.central_widget.options_widget.snap_clicked.connect(self.action_histo_space)
             aoi_array = get_aoi_array(self.raw_image, self.aoi)
-            if aoi_array.shape[0] * aoi_array.shape[1] < 1000:
+            if aoi_array.shape[0] * aoi_array.shape[1] < 1000 or self.camera is None:
                 fast = False
             else:
                 fast = True
@@ -372,7 +372,7 @@ class MainWindow(QMainWindow):
         if event == 'snap':
             self.saved_image = self.raw_image.copy()
             image = get_aoi_array(self.raw_image, self.aoi)
-            self.central_widget.top_right_widget.set_image(image,
+            self.central_widget.top_right_widget.set_image(image, self.fast_mode,
                                                            zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'live':
@@ -630,11 +630,9 @@ class MainWindow(QMainWindow):
             self.check_diff = True
 
         aoi_array = get_aoi_array(self.image, self.aoi)
-        eroded = aoi_array #self.central_widget.options_widget.get_selection(aoi_array)
-        '''
+        eroded = self.central_widget.options_widget.get_selection(aoi_array)
         self.central_widget.bot_right_widget.set_bit_depth(8)
         self.central_widget.bot_right_widget.set_images(aoi_array, eroded)
-        '''
         if self.check_diff:
             eroded = aoi_array - eroded
         self.central_widget.top_right_widget.set_image_from_array(eroded)
