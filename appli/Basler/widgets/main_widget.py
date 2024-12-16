@@ -552,6 +552,8 @@ class MainWidget(QWidget):
                 self.set_options_widget(self.options_widget)
                 self.top_right_widget = ImageHistogramWidget('Image Histogram')
                 self.top_right_widget.set_background('white')
+                self.top_right_widget.set_axis_labels(translate('x_label_histo'),
+                                                      translate('y_label_histo'))
                 self.set_top_right_widget(self.top_right_widget)
                 self.bot_right_widget.update_parameters(auto_min_max=True)
                 # Display expo time setting in main menu
@@ -597,6 +599,10 @@ class MainWidget(QWidget):
             self.top_right_widget.set_background('white')
             self.set_top_right_widget(self.top_right_widget)
             self.bot_right_widget = ImageHistogramWidget('AOI Histogram')
+            self.top_right_widget.set_axis_labels(translate('x_label_histo'),
+                                                  translate('y_label_histo'))
+            self.bot_right_widget.set_axis_labels(translate('x_label_histo'),
+                                                  translate('y_label_histo'))
             self.bot_right_widget.set_background('lightgray')
             self.set_bot_right_widget(self.bot_right_widget)
 

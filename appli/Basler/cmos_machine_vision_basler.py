@@ -234,7 +234,6 @@ class MainWindow(QMainWindow):
                                                               y_label=translate('pixel_value'))
                 self.central_widget.bot_right_widget.update_chart(20)
 
-
         elif self.central_widget.mode == 'quant_samp':
             self.central_widget.update_image(aoi=True)
         elif self.central_widget.mode == 'quantization':

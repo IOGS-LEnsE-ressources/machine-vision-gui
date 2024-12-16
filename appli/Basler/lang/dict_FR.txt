@@ -51,6 +51,8 @@ button_save_png_image_spatial;Sauvegarder l'histogramme (PNG)
 histo_original_image;Histogramme Image originale
 histo_eroded_image;Histogramme Image modifiée
 histo_quantized_image;Histogramme Image modifiée
+x_label_histo;Nuance de gris
+y_label_histo;Nombre de pixels
 #
 # ------------------
 # Quantification / Echantillonnage
