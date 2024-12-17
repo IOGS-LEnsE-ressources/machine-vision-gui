@@ -6,10 +6,11 @@ languages;FR,EN
 autoconnect;Yes
 brandname;Basler
 clock_freq;15
-exposure;40000
+exposure;200000
 blacklevel;0
 framerate;10
-colormode;Mono12
+colormode;RGB8
+#colormode;Mono12
 
 # AOI
 aoi_x;0
