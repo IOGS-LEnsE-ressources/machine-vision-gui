@@ -141,7 +141,7 @@ class MainWindow(QMainWindow):
             self.central_widget.options_widget.aoi_selected.connect(self.action_aoi_selected)
 
         elif self.central_widget.mode == 'histo':
-            aoi_array = get_aoi_array(self.raw_image, self.aoi)
+            aoi_array = get_aoi_array(self.raw_image, self.aoi).squeeze()
             fast = (aoi_array.shape[0] * aoi_array.shape[1]) < 1000
             self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
             self.central_widget.top_right_widget.set_image(aoi_array, fast_mode=fast)
@@ -149,7 +149,7 @@ class MainWindow(QMainWindow):
 
         elif self.central_widget.mode == 'histo_space':
             self.central_widget.options_widget.snap_clicked.connect(self.action_histo_space)
-            aoi_array = get_aoi_array(self.raw_image, self.aoi)
+            aoi_array = get_aoi_array(self.raw_image, self.aoi).squeeze()
             if aoi_array.shape[0] * aoi_array.shape[1] < 1000 or self.camera is None:
                 fast = False
             else:
@@ -371,19 +371,22 @@ class MainWindow(QMainWindow):
         """Action performed when an event occurred in the histo_space options widget."""
         if event == 'snap':
             self.saved_image = self.raw_image.copy()
-            image = get_aoi_array(self.raw_image, self.aoi)
-            self.central_widget.top_right_widget.set_image(image, self.fast_mode,
+            image = get_aoi_array(self.raw_image, self.aoi).squeeze()
+            self.central_widget.top_right_widget.set_image(image,
                                                            zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'live':
-            image = get_aoi_array(self.raw_image, self.aoi)
+            image = get_aoi_array(self.raw_image, self.aoi).squeeze()
             self.central_widget.top_right_widget.set_image(image, self.fast_mode,
                                                            zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'save_png':
             if self.saved_image is not None or self.raw_image is not None:
+                print('Save PNG !!')
                 self.saved_image = self.raw_image
-                image = get_aoi_array(self.saved_image, self.aoi)
+                image = get_aoi_array(self.saved_image, self.aoi).squeeze()
+                image = np.array(image)
+                print(f'Shape of Image to save : {image.shape}')
                 bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth+1)
                 bins, hist_data = process_hist_from_array(image, bins)
                 if self.zoom_histo_enabled:
@@ -430,6 +433,7 @@ class MainWindow(QMainWindow):
             self.central_widget.options_widget.set_enabled_save(False)
         elif event == 'acq_end':
             pixels = self.central_widget.options_widget.get_pixels(0)
+            pixels = np.array(pixels)
             self.central_widget.options_widget.set_enabled_save()
             self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
             self.central_widget.top_right_widget.set_image(pixels, zoom_mode=self.zoom_histo_enabled)
@@ -437,12 +441,14 @@ class MainWindow(QMainWindow):
         elif event == 'pixel_changed':
             pixel_index = self.central_widget.options_widget.get_pixel_index()
             pixels = self.central_widget.options_widget.get_pixels(pixel_index)
+            pixels = np.array(pixels)
             self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
             self.central_widget.top_right_widget.set_image(pixels, zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'save_hist_time':
             pixel_index = self.central_widget.options_widget.get_pixel_index()
             pixels = self.central_widget.options_widget.get_pixels(pixel_index)
+            pixels = np.array(pixels)
             bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth+1)
             bins, hist_data = process_hist_from_array(pixels, bins)
             if self.zoom_histo_enabled:
@@ -470,6 +476,7 @@ class MainWindow(QMainWindow):
                     self.zoom_histo_enabled = False
             pixel_index = self.central_widget.options_widget.get_pixel_index()
             pixels = self.central_widget.options_widget.get_pixels(pixel_index)
+            pixels = np.array(pixels)
             self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
             self.central_widget.top_right_widget.set_image(pixels, zoom_mode=self.zoom_histo_enabled,
                                                            zoom_target=1)
@@ -480,14 +487,14 @@ class MainWindow(QMainWindow):
         aoi_array = get_aoi_array(self.image, self.aoi)
         if event == 'quantized':
             bit_depth = self.central_widget.options_widget.get_bits_depth()
-            quantized_image = quantize_image(aoi_array, bit_depth)
+            quantized_image = quantize_image(aoi_array, bit_depth).squeeze()
             self.central_widget.top_right_widget.set_image_from_array(quantized_image << (8-bit_depth))
             self.central_widget.bot_right_widget.set_bit_depth(bit_depth, histo1=self.image_bits_depth)
-            self.central_widget.bot_right_widget.set_images(aoi_array_raw, quantized_image)
+            self.central_widget.bot_right_widget.set_images(aoi_array_raw.squeeze(), quantized_image)
 
     def action_sampling_image(self, event):
         """Action performed when an event occurred in the sampling options widget."""
-        aoi_array = get_aoi_array(self.image, self.aoi)
+        aoi_array = get_aoi_array(self.image, self.aoi).squeeze()
         if event == 'resampled':
             sample_factor = self.central_widget.options_widget.get_sample_factor()
             small_image, downsampled_image = downsample_and_upscale(aoi_array, sample_factor)

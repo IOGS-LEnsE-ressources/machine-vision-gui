@@ -447,7 +447,7 @@ class MainWidget(QWidget):
                         self.parent.camera.init_camera()
                         self.parent.camera_thread.set_camera(self.parent.camera)
                         # Init default parameters !
-                        self.menu_action('images')
+                        #self.menu_action('images')
                         self.init_default_camera_params()
                         # Start Thread
                         self.parent.image_bits_depth = get_bits_per_pixel(self.parent.camera.get_color_mode())
