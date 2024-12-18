@@ -513,7 +513,7 @@ class MainWindow(QMainWindow):
         max_value = int(self.central_widget.options_widget.get_max() // 2**delta_image_depth)
         max_range = 255
         gain = max_range/(max_value-min_value)
-        output_image = ((self.image.astype(np.int16)-min_value+1) * gain).astype(np.int16)
+        output_image = ((aoi_array.astype(np.int16)-min_value+1) * gain).astype(np.int16)
         output_image[output_image > max_range] = 255
         output_image[output_image <= 1] = 0
         output_image = output_image.astype(np.uint8)

@@ -380,7 +380,7 @@ class MainWidget(QWidget):
                         self.parent.camera.init_camera()
                         self.parent.camera_thread.set_camera(self.parent.camera)
                         # Init default parameters !
-                        self.menu_action('images')
+                        #self.menu_action('images')
                         self.init_default_camera_params()
 
                         # Start Thread
@@ -710,7 +710,6 @@ class MainWidget(QWidget):
             self.set_top_right_widget(self.top_right_widget)
             self.start_double_histo_widget(name1=translate('histo_original_image'),
                                            name2=translate('histo_contr_bright_image'))
-            print('Enhance OK')
 
         elif self.mode == 'erosion_dilation':
             self.update_image(aoi=True)
