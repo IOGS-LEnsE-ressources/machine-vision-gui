@@ -229,9 +229,15 @@ class MainWindow(QMainWindow):
                 self.central_widget.options_widget.increase_counter(self.raw_image)
                 list_values = np.array(self.central_widget.options_widget.pixels_value)
                 time_values = np.linspace(1, list_values[0].shape[0], list_values[0].shape[0])
-                self.central_widget.bot_right_widget.set_data(time_values, list_values[0].squeeze(),
-                                                              x_label=translate('sample_number'),
-                                                              y_label=translate('pixel_value'))
+                table_values = np.array(list_values)
+                if len(table_values.shape) <= 2:
+                    self.central_widget.bot_right_widget.set_data(time_values, table_values[0,:],
+                                                                  x_label=translate('sample_number'),
+                                                                  y_label=translate('pixel_value'))
+                else: # RGB
+                    self.central_widget.bot_right_widget.set_data(time_values, table_values[0, :, :],
+                                                                  x_label=translate('sample_number'),
+                                                                  y_label=translate('pixel_value'))
                 self.central_widget.bot_right_widget.update_chart(20)
 
         elif self.central_widget.mode == 'quant_samp':
@@ -341,7 +347,7 @@ class MainWindow(QMainWindow):
             self.central_widget.main_menu.set_enabled(menu1, True)
 
             # Histogram of the global image.
-            self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
+            #self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
             self.central_widget.top_right_widget.set_image(self.raw_image, fast_mode=self.fast_mode)
             self.central_widget.top_right_widget.update_info()
             # Histogram of the AOI.
@@ -375,24 +381,36 @@ class MainWindow(QMainWindow):
                 self.saved_image = self.raw_image
                 image = get_aoi_array(self.saved_image, self.aoi)
                 bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth+1)
-                bins, hist_data = process_hist_from_array(image, bins)
-                if self.zoom_histo_enabled:
-                    target = 1
-                    # Find min index
-                    min_index = np.argmax(hist_data > target) - 10
-                    if min_index < 0:
-                        min_index = 0
-                    # Find max index
-                    max_index = len(hist_data) - 1 - np.argmax(np.flip(hist_data) > target) + 10
-                    if max_index > len(bins):
-                        max_index = len(bins)
-                    hist_data = hist_data[min_index:max_index]
-                    bins = bins[min_index:max_index+1]
                 _, dir_path  = save_file_path(self.saved_dir, f'Image_histo.png', dialog=False)
-                save_hist(image, hist_data, bins, f'Image Histogram',
-                          f'space_histo.png', dir_path=dir_path,
-                          x_label=translate('x_label_histo'),
-                          y_label=translate('y_label_histo'))
+
+                if len(self.saved_image.shape) <= 2:
+                    bins, hist_data = process_hist_from_array(image, bins)
+                    if self.zoom_histo_enabled:
+                        target = 1
+                        # Find min index
+                        min_index = np.argmax(hist_data > target) - 10
+                        if min_index < 0:
+                            min_index = 0
+                        # Find max index
+                        max_index = len(hist_data) - 1 - np.argmax(np.flip(hist_data) > target) + 10
+                        if max_index > len(bins):
+                            max_index = len(bins)
+                        hist_data = hist_data[min_index:max_index]
+                        bins = bins[min_index:max_index+1]
+                    save_hist(image, hist_data, bins, f'Image Histogram',
+                              f'space_histo.png', dir_path=dir_path,
+                              x_label=translate('x_label_histo'),
+                              y_label=translate('y_label_histo'))
+                else:
+                    bins, hist_data_R = process_hist_from_array(image[:,:,0], bins)
+                    bins, hist_data_G = process_hist_from_array(image[:,:,1], bins)
+                    bins, hist_data_B = process_hist_from_array(image[:,:,2], bins)
+                    hist_data = np.column_stack((hist_data_R, hist_data_G, hist_data_B))
+                    save_hist(image, hist_data, bins, f'Image Histogram',
+                              f'space_histo.png', dir_path=dir_path,
+                              x_label=translate('x_label_histo'),
+                              y_label=translate('y_label_histo'))
+
             else:
                 image = get_aoi_array(self.raw_image, self.aoi)
             self.central_widget.top_right_widget.set_image(image, zoom_mode=self.zoom_histo_enabled,
@@ -443,6 +461,7 @@ class MainWindow(QMainWindow):
             self.central_widget.options_widget.set_enabled_save(False)
         elif event == 'acq_end':
             pixels = self.central_widget.options_widget.get_pixels(0)
+            pixels = np.array(pixels).squeeze()
             self.central_widget.options_widget.set_enabled_save()
             self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
             self.central_widget.top_right_widget.set_image(pixels)
@@ -450,12 +469,14 @@ class MainWindow(QMainWindow):
         elif event == 'pixel_changed':
             pixel_index = self.central_widget.options_widget.get_pixel_index()
             pixels = self.central_widget.options_widget.get_pixels(pixel_index)
+            pixels = np.array(pixels).squeeze()
             self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
             self.central_widget.top_right_widget.set_image(pixels)
             self.central_widget.top_right_widget.update_info()
         elif event == 'save_hist_time':
             pixel_index = self.central_widget.options_widget.get_pixel_index()
             pixels = self.central_widget.options_widget.get_pixels(pixel_index)
+            pixels = np.array(pixels).squeeze()
             bins = np.linspace(0, 2 ** self.image_bits_depth, 2 ** self.image_bits_depth+1)
             bins, hist_data = process_hist_from_array(pixels, bins)
             save_hist(pixels, hist_data, bins,

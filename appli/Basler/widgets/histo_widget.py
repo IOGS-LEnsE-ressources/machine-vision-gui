@@ -55,8 +55,16 @@ def save_hist(data: np.ndarray, data_hist: np.ndarray, bins: np.ndarray,
     else:
         x_text_pos = 0.95  # text on the right
     plt.figure(figsize=(10, 8), dpi=150)
-    plt.bar(bins[:-1], data_hist, width=np.diff(bins),
-            edgecolor='black', alpha=0.75, color='blue')
+    if len(data.shape) <= 2:
+        plt.bar(bins[:-1], data_hist, width=np.diff(bins),
+                edgecolor='black', alpha=0.75, color='gray')
+    else:
+        plt.bar(bins[:-1], data_hist[:,0], width=np.diff(bins),
+                edgecolor='black', alpha=0.75, color='red')
+        plt.bar(bins[:-1], data_hist[:,1], width=np.diff(bins),
+                edgecolor='black', alpha=0.75, color='green')
+        plt.bar(bins[:-1], data_hist[:,2], width=np.diff(bins),
+                edgecolor='black', alpha=0.75, color='blue')
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
@@ -64,6 +72,22 @@ def save_hist(data: np.ndarray, data_hist: np.ndarray, bins: np.ndarray,
     plt.text(x_text_pos, 0.95, text_str, fontsize=10, verticalalignment='top',
              horizontalalignment='right',
              transform=plt.gca().transAxes, bbox=dict(facecolor='white', alpha=0.5))
+    if len(data.shape) > 2:
+        mean_data_R = np.mean(data[:,:,0])
+        text_str = f'Mean R = {mean_data_R:.2f}\nStdDev R = {np.std(data[:,:,0]):.2f}'
+        plt.text(x_text_pos, 0.85, text_str, fontsize=8, verticalalignment='top',
+                 horizontalalignment='right',
+                 transform=plt.gca().transAxes, bbox=dict(facecolor='white', alpha=0.5))
+        mean_data_G = np.mean(data[:,:,1])
+        text_str = f'Mean G = {mean_data_G:.2f}\nStdDev G = {np.std(data[:,:,1]):.2f}'
+        plt.text(x_text_pos, 0.77, text_str, fontsize=8, verticalalignment='top',
+                 horizontalalignment='right',
+                 transform=plt.gca().transAxes, bbox=dict(facecolor='white', alpha=0.5))
+        mean_data_B = np.mean(data[:,:,2])
+        text_str = f'Mean B = {mean_data_B:.2f}\nStdDev B = {np.std(data[:,:,2]):.2f}'
+        plt.text(x_text_pos, 0.69, text_str, fontsize=8, verticalalignment='top',
+                 horizontalalignment='right',
+                 transform=plt.gca().transAxes, bbox=dict(facecolor='white', alpha=0.5))
     text_str = (informations)
     plt.text(x_text_pos, 0.25, text_str, fontsize=8, verticalalignment='top',
              horizontalalignment='right',
@@ -280,7 +304,13 @@ class HistoTimeOptionsWidget(QWidget):
         :param image_array: Array containing the image.
         """
         for i in range(4):
-            self.pixels_value[i].append(image_array[self.image_y[i], self.image_x[i]])
+            if len(image_array.shape) <= 2:
+                self.pixels_value[i].append(image_array[self.image_y[i], self.image_x[i]])
+            else: #RGB
+                pixel_R = image_array[self.image_y[i], self.image_x[i], 0]
+                pixel_G = image_array[self.image_y[i], self.image_x[i], 1]
+                pixel_B = image_array[self.image_y[i], self.image_x[i], 2]
+                self.pixels_value[i].append([pixel_R, pixel_G, pixel_B])
         self.counter += 1
         self.waiting_value()
 
@@ -370,5 +400,5 @@ class HistoTimeChartWidget(QWidget):
         y_axis : Numpy array
             Y-axis value to display.
         """
-        self.time_chart.refresh_chart()
+        self.time_chart.refresh_chart(number_samples)
         self.time_chart.display_last(number_samples)
