@@ -103,8 +103,10 @@ threshold_value_hat;Valeur Seuil 2
 # ------------------
 # Filtres
 # ------------------
-button_filter_blur;Filtre de flou (blur)
-button_filter_mean;Filtre moyenneur (mean)
+button_filter_smooth;Filtre de lissage
+filter_blur;Blur Moyen
+filter_gaussian;Blur Gaussien
+filter_median;Median
 #
 # ------------------
 # Contours
