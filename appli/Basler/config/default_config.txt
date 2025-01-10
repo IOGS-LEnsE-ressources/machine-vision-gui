@@ -9,8 +9,8 @@ clock_freq;15
 exposure;200000
 blacklevel;0
 framerate;10
-colormode;RGB8
-#colormode;Mono12
+#colormode;RGB8
+colormode;Mono12
 
 # AOI
 aoi_x;0
