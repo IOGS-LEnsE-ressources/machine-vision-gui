@@ -47,7 +47,8 @@ button_histo_space;Répartition spatiale
 button_histo_time;Etude temporelle
 title_histo_analysis;Histogramme de l'image
 button_acquire_histo;Nouvel histogramme
-button_save_png_image_spatial;Sauvegarder l'histogramme (PNG)
+button_save_png_image_spatial;Sauvegarder l'image (AOI / PNG)
+button_save_png_histo_spatial;Sauvegarder l'histogramme (PNG)
 histo_original_image;Histogramme Image originale
 histo_eroded_image;Histogramme Image modifiée
 histo_quantized_image;Histogramme Image modifiée

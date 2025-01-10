@@ -149,6 +149,11 @@ class HistoSpaceOptionsWidget(QWidget):
 
         self.select_rgb = QComboBox()
 
+        self.save_png_histo_button = QPushButton(translate('button_save_png_histo_spatial'))
+        self.save_png_histo_button.setStyleSheet(styleH2)
+        self.save_png_histo_button.setStyleSheet(unactived_button)
+        self.save_png_histo_button.setFixedHeight(BUTTON_HEIGHT)
+        self.save_png_histo_button.clicked.connect(self.clicked_action)
 
         self.save_png_image_button = QPushButton(translate('button_save_png_image_spatial'))
         self.save_png_image_button.setStyleSheet(styleH2)
@@ -162,6 +167,8 @@ class HistoSpaceOptionsWidget(QWidget):
             self.layout.addStretch()
             self.layout.addWidget(self.select_rgb)
         self.layout.addStretch()
+        self.layout.addWidget(self.save_png_histo_button)
+        self.layout.addStretch()
         self.layout.addWidget(self.save_png_image_button)
 
         self.layout.addStretch()
@@ -169,8 +176,10 @@ class HistoSpaceOptionsWidget(QWidget):
 
     def clicked_action(self):
         sender = self.sender()
-        if sender == self.save_png_image_button:
+        if sender == self.save_png_histo_button:
             self.snap_clicked.emit('save_png')
+        elif sender == self.save_png_image_button:
+            self.snap_clicked.emit('save_image_png')
         elif sender == self.zoom_check:
             is_checked = self.zoom_check.isChecked()
             self.snap_clicked.emit(f'zoom_histo:{is_checked}')

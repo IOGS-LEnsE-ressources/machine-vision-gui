@@ -376,6 +376,19 @@ class MainWindow(QMainWindow):
             self.central_widget.top_right_widget.set_image(image, self.fast_mode,
                                                            zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
+        elif event == 'save_image_png':
+            image = get_aoi_array(self.raw_image, self.aoi)
+            delta_image_depth = (self.image_bits_depth - 8)  # Power of 2 for depth conversion
+            image = image // 2 ** delta_image_depth
+            image = image.astype(np.uint8)
+            print(f'Shape = {image.shape} / Type =  {image.dtype}')
+            file_path, dir_path = save_file_path(self.saved_dir, f'Image_AOI.png', dialog=True)
+            if file_path:
+                # create an image of the histogram of the saved_image
+                cv2.imwrite(file_path, image)
+                info = QMessageBox.information(None, 'AOI Saved', f'File saved to {file_path}')
+            else:
+                warn = QMessageBox.warning(None, 'Saving Error', 'No file saved !')
         elif event == 'save_png':
             if self.saved_image is not None or self.raw_image is not None:
                 self.saved_image = self.raw_image
