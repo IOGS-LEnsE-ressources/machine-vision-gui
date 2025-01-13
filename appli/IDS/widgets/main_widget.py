@@ -440,17 +440,19 @@ class MainWidget(QWidget):
         if 'autoconnect' in self.default_parameters:
             if self.default_parameters['autoconnect'] == 'Yes':
                 if 'brandname' in self.default_parameters:
-                    camera = cam_from_brands[self.default_parameters['brandname']]()
+                    camera = CameraIds()
                     if camera.find_first_camera():
                         self.parent.brand_camera = self.default_parameters['brandname']
                         self.parent.camera = camera
-                        self.parent.camera.init_camera()
+                        self.parent.camera.init_camera(mode_max=True)
+                        self.parent.camera_device = self.parent.camera.get_camera_device()
                         self.parent.camera_thread.set_camera(self.parent.camera)
                         # Init default parameters !
                         #self.menu_action('images')
                         self.init_default_camera_params()
                         # Start Thread
                         self.parent.image_bits_depth = get_bits_per_pixel(self.parent.camera.get_color_mode())
+                        print(f'Bits Depth = {self.parent.image_bits_depth}')
                         print(camera.list_color_modes())
                         self.parent.camera_thread.start()
                         self.fast_mode = True

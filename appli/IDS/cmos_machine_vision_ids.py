@@ -206,7 +206,7 @@ class MainWindow(QMainWindow):
         """Action performed each time a new image is acquired."""
         if image_array is not None:
             if self.image_bits_depth > 8:
-                self.raw_image = image_array.view(np.uint16)
+                self.raw_image = image_array.view(np.uint16).copy()
                 self.image = self.raw_image >> (self.image_bits_depth-8)
                 self.image = self.image.astype(np.uint8).squeeze()
             else:
@@ -324,8 +324,8 @@ class MainWindow(QMainWindow):
         self.brand_camera = event['brand']
         camera_list = cam_list_brands[self.brand_camera]()
         self.camera_device = camera_list.get_cam_device(int(event['cam_dev']))
-        self.camera = cam_from_brands[self.brand_camera](self.camera_device)
-        self.camera.init_camera()
+        self.camera = CameraIds(self.camera_device)
+        self.camera.init_camera(mode_max=True)
         self.camera_thread.set_camera(self.camera)
         # Init default parameters
         self.central_widget.init_default_camera_params()
