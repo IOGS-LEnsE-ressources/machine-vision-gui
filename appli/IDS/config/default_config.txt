@@ -6,10 +6,11 @@ languages;FR,EN
 autoconnect;Yes
 clock_freq;10
 exposure;40000
-blacklevel;100
+blacklevel;255
 framerate;5
 brandname;IDS
 colormode;Mono10
+shutter;Rolling
 
 # AOI
 aoi_x;0

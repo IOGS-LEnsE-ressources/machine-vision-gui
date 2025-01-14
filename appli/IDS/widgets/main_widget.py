@@ -445,7 +445,6 @@ class MainWidget(QWidget):
                         self.parent.brand_camera = self.default_parameters['brandname']
                         self.parent.camera = camera
                         self.parent.camera.init_camera(mode_max=True)
-                        self.parent.camera_device = self.parent.camera.get_camera_device()
                         self.parent.camera_thread.set_camera(self.parent.camera)
                         # Init default parameters !
                         #self.menu_action('images')
@@ -454,6 +453,7 @@ class MainWidget(QWidget):
                         self.parent.image_bits_depth = get_bits_per_pixel(self.parent.camera.get_color_mode())
                         print(f'Bits Depth = {self.parent.image_bits_depth}')
                         print(camera.list_color_modes())
+                        #self.parent.camera.load_parameters('./config/camera_params.ini')
                         self.parent.camera_thread.start()
                         self.fast_mode = True
                     return True
