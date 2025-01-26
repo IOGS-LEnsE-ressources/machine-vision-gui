@@ -123,6 +123,9 @@ class HistoSpaceOptionsWidget(QWidget):
         self.zoom_check = QCheckBox(translate('button_zoom_histo'))
         self.zoom_check.stateChanged.connect(self.clicked_action)
 
+        self.adapt_check = QCheckBox(translate('button_adapt_histo'))
+        self.adapt_check.stateChanged.connect(self.clicked_action)
+
         self.select_rgb = QComboBox()
 
 
@@ -134,6 +137,7 @@ class HistoSpaceOptionsWidget(QWidget):
 
         self.layout.addWidget(self.label_title_spatial_analysis)
         self.layout.addWidget(self.zoom_check)
+        self.layout.addWidget(self.adapt_check)
         if color:
             self.layout.addStretch()
             self.layout.addWidget(self.select_rgb)
@@ -150,6 +154,9 @@ class HistoSpaceOptionsWidget(QWidget):
         elif sender == self.zoom_check:
             is_checked = self.zoom_check.isChecked()
             self.snap_clicked.emit(f'zoom_histo:{is_checked}')
+        elif sender == self.adapt_check:
+            is_checked = self.adapt_check.isChecked()
+            self.snap_clicked.emit(f'adapt_image_histo:{is_checked}')
         elif sender == self.select_rgb:
             print(self.select_rgb.currentIndex())
 

@@ -66,11 +66,13 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("LEnsE - CMOS Sensor / Machine Vision / Lab work")
         # Objects
         self.image = None
+        self.image_disp = None
         self.raw_image = None
         self.saved_image = None
         self.aoi = None
         self.fast_mode = False
         self.zoom_histo_enabled = False
+        self.adapt_image_histo_enabled = False  # Adapt contraste to min and max of the image
         self.image_bits_depth = 8
         self.saved_dir = None
         # Displayed image
@@ -213,8 +215,18 @@ class MainWindow(QMainWindow):
                 self.raw_image = image_array.view(np.uint8)
                 self.image = self.raw_image.astype(np.uint8).squeeze()
 
-        self.central_widget.top_left_widget.set_image_from_array(self.image)
+        self.central_widget.top_left_widget.set_image_from_array(self.image_disp)
         self.update_widgets()
+
+    def adapt_contrast(self):
+        if self.adapt_image_histo_enabled:
+            image = get_aoi_array(self.image, self.aoi)
+
+            max_image = np.max(image)
+            min_image = np.min(image)
+            self.image_disp = (image - min_image) / (max_image - min_image) * 255
+            self.image_disp = self.image_disp.astype(np.uint8)
+            self.central_widget.top_left_widget.set_image_from_array(self.image_disp, aoi=True)
 
     def update_widgets(self):
         """Update widgets display after an image acquisition."""
@@ -415,13 +427,16 @@ class MainWindow(QMainWindow):
                 self.zoom_histo_enabled = True
             else:
                 self.zoom_histo_enabled = False
-            '''
-            pixel_index = self.central_widget.options_widget.get_pixel_index()
-            pixels = self.central_widget.options_widget.get_pixels(pixel_index)
-            self.central_widget.top_right_widget.set_bit_depth(self.image_bits_depth)
-            self.central_widget.top_right_widget.set_image(pixels, zoom_mode=self.zoom_histo_enabled,
+            image = get_aoi_array(self.raw_image, self.aoi)
+            self.central_widget.top_right_widget.set_image(image, zoom_mode=self.zoom_histo_enabled,
                                                            zoom_target=1)
-            '''
+
+        elif 'adapt_image_histo' in event:
+            if 'True' in event:
+                self.adapt_image_histo_enabled = True
+            else:
+                self.adapt_image_histo_enabled = False
+            self.adapt_contrast()
 
         # Display the AOI.
         self.central_widget.update_image(aoi=True)

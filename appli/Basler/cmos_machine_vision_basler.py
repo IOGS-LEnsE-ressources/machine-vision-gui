@@ -377,6 +377,7 @@ class MainWindow(QMainWindow):
                                                            zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'save_image_png':
+            self.camera_thread.stop()
             image = get_aoi_array(self.raw_image, self.aoi)
             delta_image_depth = (self.image_bits_depth - 8)  # Power of 2 for depth conversion
             image = image // 2 ** delta_image_depth
@@ -389,7 +390,9 @@ class MainWindow(QMainWindow):
                 info = QMessageBox.information(None, 'AOI Saved', f'File saved to {file_path}')
             else:
                 warn = QMessageBox.warning(None, 'Saving Error', 'No file saved !')
+            self.camera_thread.start()
         elif event == 'save_png':
+            self.camera_thread.stop()
             if self.saved_image is not None or self.raw_image is not None:
                 self.saved_image = self.raw_image
                 image = get_aoi_array(self.saved_image, self.aoi)
@@ -428,6 +431,8 @@ class MainWindow(QMainWindow):
                 image = get_aoi_array(self.raw_image, self.aoi)
             self.central_widget.top_right_widget.set_image(image, zoom_mode=self.zoom_histo_enabled,
                                                            zoom_target=1)
+            self.camera_thread.start()
+
         elif 'zoom_histo' in event:
             if self.saved_image is not None:
                 if 'True' in event:

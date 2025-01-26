@@ -73,6 +73,7 @@ title_time_analysis;Analyse temporelle
 button_start_time;Lancer une acquisition
 label_pixel_select;Sélection du pixel
 button_zoom_histo;Zoom sur histogramme
+button_adapt_histo;Adapter image (contraste)
 button_save_histo_time;Sauvegarder l'histogramme (PNG)
 #
 # ------------------
