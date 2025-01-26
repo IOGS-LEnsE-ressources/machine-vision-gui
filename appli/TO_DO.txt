@@ -4,8 +4,6 @@ Appli IDS
 Fonctions sup
 =============
 
-1- Histogramme (spatial) : ajouter bouton auto-adaptation de l'image 
-(normalisation par maximum de l'image pour affichage - ciel étoilé)
 
 
 Bugs
