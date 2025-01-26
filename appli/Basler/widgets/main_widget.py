@@ -494,17 +494,18 @@ class MainWidget(QWidget):
         :param aoi: Only AOI is displayed.
         :param aoi_disp: The whole image is displayed with a rectangle around the AOI.
         """
-        if aoi:
-            image = get_aoi_array(self.parent.image, self.parent.aoi)
-            image = zoom_array(image, self.zoom_factor)
-            #print(f'Z = {self.zoom_factor}')
-            self.top_left_widget.set_image_from_array(image, aoi)
-        else:
-            if aoi_disp:
-                image = display_aoi(self.parent.image, self.parent.aoi)
-                self.top_left_widget.set_image_from_array(image)
+        if self.parent.adapt_image_histo_enabled is False:
+            if aoi:
+                image = get_aoi_array(self.parent.image, self.parent.aoi)
+                image = zoom_array(image, self.zoom_factor)
+                #print(f'Z = {self.zoom_factor}')
+                self.top_left_widget.set_image_from_array(image, aoi)
             else:
-                self.top_left_widget.set_image_from_array(self.parent.raw_image)
+                if aoi_disp:
+                    image = display_aoi(self.parent.image, self.parent.aoi)
+                    self.top_left_widget.set_image_from_array(image)
+                else:
+                    self.top_left_widget.set_image_from_array(self.parent.raw_image)
 
     def menu_action(self, event):
         """

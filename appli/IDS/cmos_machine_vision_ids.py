@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
         self.aoi = None
         self.fast_mode = False
         self.zoom_histo_enabled = False
-        self.adapt_image_histo_enabled = False  # Adapt contraste to min and max of the image
+        self.adapt_image_histo_enabled = False  # Adapt contrast to min and max of the image
         self.image_bits_depth = 8
         self.saved_dir = None
         # Displayed image
