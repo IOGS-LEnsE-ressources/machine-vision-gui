@@ -214,8 +214,11 @@ class MainWindow(QMainWindow):
             else:
                 self.raw_image = image_array.view(np.uint8)
                 self.image = self.raw_image.astype(np.uint8).squeeze()
-
-        self.central_widget.top_left_widget.set_image_from_array(self.image_disp)
+            self.image_disp = self.image
+        if self.adapt_image_histo_enabled is False:
+            self.central_widget.top_left_widget.set_image_from_array(self.image_disp)
+        else:
+            self.adapt_contrast()
         self.update_widgets()
 
     def adapt_contrast(self):
