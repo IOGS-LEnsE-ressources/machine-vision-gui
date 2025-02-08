@@ -219,10 +219,10 @@ class HistoTimeOptionsWidget(QWidget):
 
         # Camera parameters
         self.label_params_camera = QLabel('')
-        expo = round(self.parent.parent.camera.get_exposure() / 1000, 1)
+        expo = int(self.parent.parent.camera.get_exposure())
         fps = round(self.parent.parent.camera.get_frame_rate(), 1)
         bl = self.parent.parent.camera.get_black_level()
-        text = f'Expo = {expo} ms / FPS = {fps} / BL = {bl}'
+        text = f'Expo = {expo} us / FPS = {fps} / BL = {bl}'
         self.label_params_camera.setText(text)
         self.label_params_camera.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label_params_camera.setStyleSheet(styleH2)

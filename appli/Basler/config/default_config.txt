@@ -6,9 +6,9 @@ languages;FR,EN
 autoconnect;Yes
 brandname;Basler
 clock_freq;15
-exposure;200000
+exposure;20000
 blacklevel;0
-framerate;10
+framerate;5
 #colormode;RGB8
 colormode;Mono12
 
@@ -22,6 +22,9 @@ aoi_h;400
 save_images_dir;D:/_old_dd/
 
 # Default Menu
+# Type 1 for second year labwork - CMOS
+#off_menu;8,10,11,13,14,15
+# Off Menu for first year labwork
 off_menu;15
 type1;3,5,6,8,10,11,13,14
 type2;5,6,8,10,11,13,14

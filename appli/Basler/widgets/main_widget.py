@@ -396,7 +396,8 @@ class MainWidget(QWidget):
         if 'save_images_dir' in self.default_parameters:
             self.parent.saved_dir = self.default_parameters['save_images_dir']
         if 'exposure' in self.default_parameters:
-            self.parent.camera.set_exposure(int(self.default_parameters['exposure']))
+            self.parent.camera_exposure_time = int(self.default_parameters["exposure"])
+            self.parent.camera.set_exposure(self.parent.camera_exposure_time)
         if 'blacklevel' in self.default_parameters:
             self.parent.camera.set_black_level(int(self.default_parameters['blacklevel']))
         if 'framerate' in self.default_parameters:
@@ -404,9 +405,9 @@ class MainWidget(QWidget):
         if 'colormode' in self.default_parameters:
             self.parent.camera.set_color_mode(self.default_parameters['colormode'])
         camera = self.parent.camera
-        print(f'Expo = {camera.get_exposure()}')
+        print(f'Expo = {camera.get_exposure()} us')
         print(f'FPS  = {camera.get_frame_rate()}')
-        print(f'Colo = {camera.get_color_mode()}')
+        print(f'Color = {camera.get_color_mode()}')
         print(f'ExpoRange = {camera.get_exposure_range()}')
 
     def clear_layout(self, row: int, column: int) -> None:
@@ -786,7 +787,7 @@ class MainWidget(QWidget):
 
     def action_expo_changed(self, event):
         """Action performed when the exposure value in the main menu slider changed."""
-        expo_value = self.main_menu.get_expo_value()*1000
+        expo_value = self.main_menu.get_expo_value()
         self.parent.camera.set_exposure(expo_value)
 
 

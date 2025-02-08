@@ -25,7 +25,7 @@ from lensepy.images.conversion import quantize_image
 
 from widgets.main_widget import *
 from lensecam.camera_thread import CameraThread
-from lensecam.ids.camera_ids import get_bits_per_pixel
+from lensecam.basler.camera_basler import get_bits_per_pixel
 from PyQt6.QtWidgets import QMainWindow, QApplication, QFileDialog
 from lensepy.images.processing import *
 
@@ -82,6 +82,7 @@ class MainWindow(QMainWindow):
         self.camera_index = 0  # TO UPDATE !! when a new camera is selected with a camera_list object
         self.camera_thread = CameraThread()
         self.camera_thread.image_acquired.connect(self.thread_update_image)
+        self.camera_exposure_time = 0
         # GUI structure
         self.central_widget = MainWidget(self)
         self.setCentralWidget(self.central_widget)
@@ -97,6 +98,7 @@ class MainWindow(QMainWindow):
         Action performed by an event in the main widget.
         :param event: Event that triggered the action.
         """
+        print(f'Expo = {self.camera_exposure_time} us')
         if self.raw_image is not None:
             size = self.raw_image.shape[1] * self.raw_image.shape[0]
             self.fast_mode = size > 1e5 # Fast mode if number of pixels > 1e5
@@ -210,6 +212,7 @@ class MainWindow(QMainWindow):
         self.image_disp = self.image
         self.central_widget.top_left_widget.set_image_from_array(self.image_disp)
         self.update_widgets()
+
 
     def adapt_contrast(self):
         if self.adapt_image_histo_enabled:
@@ -341,12 +344,10 @@ class MainWindow(QMainWindow):
         self.central_widget.init_default_camera_params()
         # Update menu exposure time slider
         min_expo, max_expo = self.camera.get_exposure_range()
-        if min_expo < 100:
-            min_expo = 100
-        if max_expo > 400000:
-            max_expo = 400000
-        self.central_widget.main_menu.expo_widget.set_min_max_values(min_expo/1000,
-                                                                     max_expo/1000)
+        print(f'Min expo = {min_expo} / Max expo = {max_expo}')
+        if max_expo > 2000000:
+            max_expo = 2000000
+        self.central_widget.main_menu.expo_widget.set_min_max_values(min_expo, max_expo)
         # Start Thread
         self.image_bits_depth = get_bits_per_pixel(self.camera.get_color_mode())
         self.camera_thread.start()

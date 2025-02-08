@@ -22,25 +22,19 @@ from lensepy.css import *
 from lensepy.pyqt6.widget_slider import *
 from lensepy.images.conversion import *
 from lensecam.basler.camera_basler_widget import CameraBaslerListWidget
-from lensecam.basler.camera_basler import CameraBasler
-from lensecam.ids.camera_ids_widget import CameraIdsListWidget
-from lensecam.ids.camera_ids import CameraIds, get_bits_per_pixel
-from lensecam.ids.camera_list import CameraList as CameraIdsList
+from lensecam.basler.camera_basler import CameraBasler, get_bits_per_pixel
 from lensecam.basler.camera_list import CameraList as CameraBaslerList
 
 
 cam_list_brands = {
-    'Basler': CameraBaslerList,
-    'IDS': CameraIdsList,
+    'Basler': CameraBaslerList
 }
 cam_list_widget_brands = {
     'Select...': 'None',
-    'Basler': CameraBaslerListWidget,
-    'IDS': CameraIdsListWidget,
+    'Basler': CameraBaslerListWidget
 }
 cam_from_brands = {
-    'Basler': CameraBasler,
-    'IDS': CameraIds,
+    'Basler': CameraBasler
 }
 
 
@@ -201,7 +195,7 @@ class CameraSettingsWidget(QWidget):
 
     settings_changed = pyqtSignal(str)
 
-    def __init__(self, parent = None, camera: CameraIds or CameraBasler = None):
+    def __init__(self, parent = None, camera: CameraBasler = None):
         """
 
         """
@@ -235,11 +229,12 @@ class CameraSettingsWidget(QWidget):
 
         # Settings
         # --------
-        self.slider_exposure_time = SliderBloc(name='name_slider_exposure_time', unit='ms', min_value=0, max_value=10)
+        self.slider_exposure_time = SliderBloc(name='name_slider_exposure_time', unit='us',
+                                               min_value=0, max_value=10000000, integer=True)
         self.slider_exposure_time.slider_changed.connect(self.slider_exposure_time_changing)
 
         self.slider_black_level = SliderBloc(name='name_slider_black_level', unit='gray',
-                                              min_value=0, max_value=255, integer=True)
+                                              min_value=0, max_value=100, integer=True)
         self.slider_black_level.slider_changed.connect(self.slider_black_level_changing)
 
         self.layout.addWidget(self.label_title_camera_settings)
@@ -252,7 +247,7 @@ class CameraSettingsWidget(QWidget):
     def slider_exposure_time_changing(self, event):
         """Action performed when the exposure time slider changed."""
         if self.camera is not None:
-            exposure_time_value = self.slider_exposure_time.get_value() * 1000
+            exposure_time_value = self.slider_exposure_time.get_value()
             self.camera.set_exposure(exposure_time_value)
             self.settings_changed.emit('camera_settings_changed')
         else:
@@ -262,7 +257,8 @@ class CameraSettingsWidget(QWidget):
         """Action performed when the exposure time slider changed."""
         if self.camera is not None:
             black_level_value = self.slider_black_level.get_value()
-            self.camera.set_black_level((black_level_value//4) * 4)
+            #self.camera.set_black_level((black_level_value//4) * 4)
+            self.camera.set_black_level(black_level_value)
             self.settings_changed.emit('changed')
         else:
             print('No Camera Connected')
@@ -272,16 +268,15 @@ class CameraSettingsWidget(QWidget):
 
         """
         if auto_min_max:
+            expo_time = self.camera.get_exposure()
             exposure_min, exposure_max = self.camera.get_exposure_range()
-            if exposure_max > 400000:
-                exposure_max = 400000
-            if exposure_min < 100:
-                exposure_min = 100
-            self.slider_exposure_time.set_min_max_slider_values(exposure_min // 1000, exposure_max // 1000)
-            bl_min, bl_max = self.camera.get_black_level_range()
-            self.slider_black_level.set_min_max_slider_values(bl_min, bl_max)
+            # Max exposure time to 2s
+            if exposure_max > 2000000:
+                exposure_max = 2000000
+            self.slider_exposure_time.set_min_max_slider_values(exposure_min, exposure_max,
+                                                                value=expo_time)
         exposure_time = self.camera.get_exposure()
-        self.slider_exposure_time.set_value(exposure_time / 1000)
+        self.slider_exposure_time.set_value(exposure_time)
         bl = self.camera.get_black_level()
         self.slider_black_level.set_value(bl)
 
@@ -388,8 +383,8 @@ class CameraInfosWidget(QWidget):
             self.label_value_camera_size.setText(f'W={max_width} x H={max_height} px')
             fps = self.parent.parent.camera.get_frame_rate()
             self.label_value_camera_fps.setText(f'{fps} Frame/s (fps)')
-            expo = self.parent.parent.camera.get_exposure() / 1000
-            self.label_value_camera_exposure.setText(f'{expo} ms')
+            expo = self.parent.parent.camera.get_exposure()
+            self.label_value_camera_exposure.setText(f'{expo} us')
         else:
             self.label_value_camera_name.setText('No Camera')
             self.label_value_camera_id.setText('No Camera')

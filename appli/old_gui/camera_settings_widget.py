@@ -110,11 +110,11 @@ class CameraSettingsWidget(QWidget):
             exposure_min, exposure_max = self.camera.get_exposure_range()
             if exposure_max > 400000:
                 exposure_max = 400000
-            self.slider_exposure_time.set_min_max_slider_values(exposure_min // 1000, exposure_max // 1000)
+            self.slider_exposure_time.set_min_max_slider_values(exposure_min, exposure_max)
             bl_min, bl_max = self.camera.get_black_level_range()
             self.slider_black_level.set_min_max_slider_values(bl_min, bl_max)
         exposure_time = self.camera.get_exposure()
-        self.slider_exposure_time.set_value(exposure_time / 1000)
+        self.slider_exposure_time.set_value(exposure_time)
         bl = self.camera.get_black_level()
         self.slider_black_level.set_value(bl)
 
