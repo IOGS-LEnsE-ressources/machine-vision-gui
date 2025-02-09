@@ -255,7 +255,6 @@ class SmoothFilterOptionsWidget(QWidget):
                 self.filter = Smooth.MEDIAN
         elif sender == self.slider_sigma:
             sigma = self.slider_sigma.get_value()
-            print(f'Sigma Changed ! {sigma}')
 
         self.options_changed.emit('smooth_filter')
 

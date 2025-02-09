@@ -177,7 +177,8 @@ class MainWindow(QMainWindow):
 
         elif self.central_widget.mode == 'bright_contrast':
             self.check_diff = False
-            self.central_widget.options_widget.contrast_brithtness_changed.connect(self.action_contrast_brightness)
+            self.central_widget.options_widget.contrast_brithtness_changed.connect(
+                self.action_contrast_brightness)
             self.action_contrast_brightness('contrast_brightness')
 
         elif self.central_widget.mode == 'enhance_contrast':
@@ -392,7 +393,8 @@ class MainWindow(QMainWindow):
                                                            zoom_mode=self.zoom_histo_enabled)
             self.central_widget.top_right_widget.update_info()
         elif event == 'save_image_png':
-            self.camera_thread.stop()
+            if self.camera is not None:
+                self.camera_thread.stop()
             image = get_aoi_array(self.raw_image, self.aoi)
             delta_image_depth = (self.image_bits_depth - 8)  # Power of 2 for depth conversion
             image = image // 2 ** delta_image_depth
@@ -405,9 +407,11 @@ class MainWindow(QMainWindow):
                 info = QMessageBox.information(None, 'AOI Saved', f'File saved to {file_path}')
             else:
                 warn = QMessageBox.warning(None, 'Saving Error', 'No file saved !')
-            self.camera_thread.start()
+            if self.camera is not None:
+                self.camera_thread.start()
         elif event == 'save_png':
-            self.camera_thread.stop()
+            if self.camera is not None:
+                self.camera_thread.stop()
             if self.saved_image is not None or self.raw_image is not None:
                 self.saved_image = self.raw_image
                 image = get_aoi_array(self.saved_image, self.aoi)
@@ -446,7 +450,9 @@ class MainWindow(QMainWindow):
                 image = get_aoi_array(self.raw_image, self.aoi)
             self.central_widget.top_right_widget.set_image(image, zoom_mode=self.zoom_histo_enabled,
                                                            zoom_target=1)
-            self.camera_thread.start()
+
+            if self.camera is not None:
+                self.camera_thread.start()
 
         elif 'zoom_histo' in event:
             if 'True' in event:
@@ -607,6 +613,9 @@ class MainWindow(QMainWindow):
 
         self.central_widget.bot_right_widget.set_bit_depth(self.image_bits_depth)
         self.central_widget.bot_right_widget.set_image(aoi_array_raw, fast_mode=True)
+        self.central_widget.bot_right_widget.set_v_line(threshold_value)
+        if self.central_widget.submode == 3: # Hat threshold:
+            self.central_widget.bot_right_widget.set_v_line(threshold_value_hat, 'b')
         self.central_widget.top_right_widget.set_image_from_array(output_image)
 
     def action_erosion_dilation(self, event):

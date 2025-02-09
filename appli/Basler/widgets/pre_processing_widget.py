@@ -472,7 +472,8 @@ class ContrastBrightnessOptionsWidget(QWidget):
         self.slider_contrast.set_value(1)
         self.slider_contrast.slider_changed.connect(self.action_slider_changed)
 
-        self.slider_brightness = SliderBloc(translate('slider_brightness'), '', -100, 100, integer=True)
+        self.slider_brightness = SliderBloc(translate('slider_brightness'), '', 0,
+                                            100, integer=True)
         self.slider_brightness.set_value(0)
         self.slider_brightness.slider_changed.connect(self.action_slider_changed)
 
