@@ -378,6 +378,8 @@ class MainWidget(QWidget):
                         self.parent.brand_camera = self.default_parameters['brandname']
                         self.parent.camera = camera
                         self.parent.camera.init_camera()
+                        # TO TEST !!
+                        self.parent.camera.camera_remote.AcquisitionStopMode.Value = "Complete"
                         self.parent.camera_thread.set_camera(self.parent.camera)
                         # Init default parameters !
                         #self.menu_action('images')
