@@ -5,7 +5,7 @@ language;FR
 languages;FR,EN
 autoconnect;Yes
 brandname;Basler
-clock_freq;15
+clock_freq;20
 exposure;20000
 blacklevel;0
 framerate;5
