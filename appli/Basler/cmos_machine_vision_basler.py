@@ -211,6 +211,7 @@ class MainWindow(QMainWindow):
                 self.raw_image = image_array.view(np.uint8)
                 self.image = self.raw_image
         self.image_disp = self.image
+        print(type(self.image_disp))
         self.central_widget.top_left_widget.set_image_from_array(self.image_disp)
         self.update_widgets()
 
