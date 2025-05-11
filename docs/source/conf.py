@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.abspath('../../progs/Basler/src/supoptools'))
 project = 'Machine Vision GUI'
 copyright = '2024, Julien Villemejane'
 author = 'Julien Villemejane <>'
-release = '1.0.1'
+release = '1.0'
 
 
 # -- General configuration ---------------------------------------------------
