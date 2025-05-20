@@ -211,7 +211,7 @@ class MainWindow(QMainWindow):
                 self.raw_image = image_array.view(np.uint8)
                 self.image = self.raw_image
         self.image_disp = self.image
-        print(type(self.image_disp))
+        #print(type(self.image_disp))
         self.central_widget.top_left_widget.set_image_from_array(self.image_disp)
         self.update_widgets()
 
@@ -400,7 +400,7 @@ class MainWindow(QMainWindow):
             delta_image_depth = (self.image_bits_depth - 8)  # Power of 2 for depth conversion
             image = image // 2 ** delta_image_depth
             image = image.astype(np.uint8)
-            print(f'Shape = {image.shape} / Type =  {image.dtype}')
+            #print(f'Shape = {image.shape} / Type =  {image.dtype}')
             file_path, dir_path = save_file_path(self.saved_dir, f'Image_AOI.png', dialog=True)
             if file_path:
                 # create an image of the histogram of the saved_image
