@@ -393,6 +393,23 @@ class MainWidget(QWidget):
     def init_default_camera_params(self):
         """Initialize a camera with default_config.txt."""
         print('Default Parameters')
+        self.parent.camera.Open()
+
+        nodemap = self.parent.camera.GetNodeMap()
+
+        # Sélectionner le profil à charger (par défaut "Default")
+        user_set_selector = nodemap.GetNode("UserSetSelector")
+        user_set_selector.SetValue("Default")
+
+        # Exécuter le chargement
+        user_set_load = nodemap.GetNode("UserSetLoad")
+        if user_set_load.IsWritable():
+            user_set_load.Execute()
+            print("UserSet 'Default' chargé.")
+        else:
+            print("No Default chargé")
+
+
         if 'save_images_dir' in self.default_parameters:
             self.parent.saved_dir = self.default_parameters['save_images_dir']
         if 'exposure' in self.default_parameters:
