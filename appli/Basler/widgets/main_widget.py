@@ -378,6 +378,8 @@ class MainWidget(QWidget):
                         self.parent.brand_camera = self.default_parameters['brandname']
                         self.parent.camera = camera
                         self.parent.camera.init_camera()
+                        self.parent.camera.init_camera_parameters('params_Basler.txt')
+                        # self.parent.camera.
                         self.parent.camera_thread.set_camera(self.parent.camera)
                         # Init default parameters !
                         #self.menu_action('images')
@@ -394,24 +396,6 @@ class MainWidget(QWidget):
         """Initialize a camera with default_config.txt."""
         print('Default Parameters')
         '''
-        self.parent.camera.Open()
-
-        nodemap = self.parent.camera.GetNodeMap()
-
-        # Sélectionner le profil à charger (par défaut "Default")
-        user_set_selector = nodemap.GetNode("UserSetSelector")
-        user_set_selector.SetValue("Default")
-
-        # Exécuter le chargement
-        user_set_load = nodemap.GetNode("UserSetLoad")
-        if user_set_load.IsWritable():
-            user_set_load.Execute()
-            print("UserSet 'Default' chargé.")
-        else:
-            print("No Default chargé")
-        '''
-
-
         if 'save_images_dir' in self.default_parameters:
             self.parent.saved_dir = self.default_parameters['save_images_dir']
         if 'exposure' in self.default_parameters:
@@ -428,6 +412,7 @@ class MainWidget(QWidget):
         print(f'FPS  = {camera.get_frame_rate()}')
         print(f'Color = {camera.get_color_mode()}')
         print(f'ExpoRange = {camera.get_exposure_range()}')
+        '''
 
     def clear_layout(self, row: int, column: int) -> None:
         """
