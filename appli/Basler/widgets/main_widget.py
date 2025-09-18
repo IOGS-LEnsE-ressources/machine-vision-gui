@@ -393,6 +393,7 @@ class MainWidget(QWidget):
     def init_default_camera_params(self):
         """Initialize a camera with default_config.txt."""
         print('Default Parameters')
+        '''
         self.parent.camera.Open()
 
         nodemap = self.parent.camera.GetNodeMap()
@@ -408,6 +409,7 @@ class MainWidget(QWidget):
             print("UserSet 'Default' chargé.")
         else:
             print("No Default chargé")
+        '''
 
 
         if 'save_images_dir' in self.default_parameters:
