@@ -22,6 +22,7 @@ class CameraBasler:
             return False
         self.camera = pylon.InstantCamera(self.tl_factory.CreateDevice(devices[0]))
         self.camera_nodemap = self.camera.GetNodeMap()
+        self.camera.DeviceReset()
         return True
 
     def open(self):
