@@ -22,7 +22,11 @@ class CameraBasler:
             return False
         self.camera = pylon.InstantCamera(self.tl_factory.CreateDevice(devices[0]))
         self.camera_nodemap = self.camera.GetNodeMap()
+        '''
+        self.open()
         self.camera.DeviceReset()
+        self.close()
+        '''
         return True
 
     def open(self):
@@ -41,8 +45,12 @@ class CameraBasler:
 
     def start_grabbing(self, strategy=pylon.GrabStrategy_LatestImageOnly):
         if self.camera is None:
-            raise Exception("Aucune caméra sélectionnée.")
-        self.camera.StartGrabbing(strategy)
+            return False
+        if self.is_open:
+            self.camera.StartGrabbing(strategy)
+            return True
+        else:
+            return False
 
     def stop_grabbing(self):
         if self.camera and self.camera.IsGrabbing():
@@ -154,6 +162,7 @@ if __name__ == "__main__":
         print('Connecté')
         my_cam.init_camera_parameters('../config/initial_params.txt')
 
+        my_cam.open()
         my_cam.start_grabbing()
         frame = my_cam.grab_frame()
         print(f'Frame : {frame.dtype} / {frame.shape}')
@@ -168,9 +177,9 @@ if __name__ == "__main__":
         mean_value = []
         stddev_value = []
 
-        my_cam.open()
-        my_cam.start_grabbing()
         for expo_time in expo_time_list:
+            my_cam.open()
+            my_cam.start_grabbing()
             my_cam.set_parameter('ExposureTime', expo_time)
             frame = my_cam.grab_frame()
 
@@ -179,8 +188,8 @@ if __name__ == "__main__":
             mean_value.append(m_v)
             stddev_value.append(std_v)
 
-        my_cam.stop_grabbing()
-        my_cam.close()
+            my_cam.stop_grabbing()
+            my_cam.close()
 
         expo_times = np.array(expo_time_list)
         mean_value = np.array(mean_value)
