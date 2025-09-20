@@ -1,0 +1,11 @@
+
+J'ai voulu tester la linéarité du capteur CMOS Basler a2A1920-160ucBAS en fonction du temps d'exposition, dans l'obscurité, en mettant l'ensemble des systèmes de contrôle de l'image sur Off (WhiteBalanceAuto, GainAuto...), depuis Pylon Viewer 9.
+J'ai tracé la moyenne de tous les pixels de la caméra ainsi que l'écart-type standard en fonction du temps d'exposition (de 1ms à 2s).
+
+Théoriquement, la moyenne de luminisoté dans l'image en fonction du temps d'intégration est une courbe linéaire. Hors, le résultat obtenu est une courbe quasi linéaire entre 1 ms et 1s, mais elle décroche à partir de 1.1s jusqu'à 2s (voir courbe en copie). 
+Le bruit associé (écart-type) est quant à lui quasiment linéaire de 1ms à 2s.
+
+Est-ce que certains ont obtenu des résultats similaires sur l'intensité moyenne ?
+A quoi est dû le changement de comportement de la caméra dans ces deux zones ? Le circuit de détection (acquisition-conversion) n'est-il pas le même dans les deux cas ?
+
+Merci d'avance pour votre aide.
