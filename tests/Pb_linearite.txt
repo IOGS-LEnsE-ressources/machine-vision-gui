@@ -1,11 +1,10 @@
+J’ai souhaité tester la linéarité du capteur CMOS Basler a2A1920-160ucBAS en fonction du temps d’exposition. L’expérience a été réalisée dans l’obscurité, avec l’ensemble des fonctions automatiques de contrôle de l’image désactivées (WhiteBalanceAuto, GainAuto, etc.), via Pylon Viewer 9.
 
-J'ai voulu tester la linéarité du capteur CMOS Basler a2A1920-160ucBAS en fonction du temps d'exposition, dans l'obscurité, en mettant l'ensemble des systèmes de contrôle de l'image sur Off (WhiteBalanceAuto, GainAuto...), depuis Pylon Viewer 9.
-J'ai tracé la moyenne de tous les pixels de la caméra ainsi que l'écart-type standard en fonction du temps d'exposition (de 1ms à 2s).
+J’ai tracé l’évolution de la moyenne de tous les pixels de la caméra, ainsi que de l’écart-type, en fonction du temps d’exposition (allant de 1 ms à 2 s).
 
-Théoriquement, la moyenne de luminisoté dans l'image en fonction du temps d'intégration est une courbe linéaire. Hors, le résultat obtenu est une courbe quasi linéaire entre 1 ms et 1s, mais elle décroche à partir de 1.1s jusqu'à 2s (voir courbe en copie). 
-Le bruit associé (écart-type) est quant à lui quasiment linéaire de 1ms à 2s.
+En théorie, la moyenne de la luminance dans l’image devrait croître de manière linéaire avec le temps d’intégration. Or, les résultats montrent une réponse quasiment linéaire entre 1 ms et 1 s, mais qui décroche nettement à partir de 1,1 s jusqu’à 2 s, avec des valeurs très éloignées de la tendance attendue.
+En revanche, le bruit associé (écart-type) reste quasiment linéaire sur l’ensemble de la plage, de 1 ms à 2 s.
 
-Est-ce que certains ont obtenu des résultats similaires sur l'intensité moyenne ?
-A quoi est dû le changement de comportement de la caméra dans ces deux zones ? Le circuit de détection (acquisition-conversion) n'est-il pas le même dans les deux cas ?
+À quoi peut être dû ce changement de comportement de la caméra entre ces deux régimes d’exposition ? Le circuit de détection (acquisition–conversion) n’est-il pas censé rester identique dans les deux cas ?
 
-Merci d'avance pour votre aide.
+Merci d’avance pour votre aide.
