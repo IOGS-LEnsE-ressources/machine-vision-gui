@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
     QLabel, QComboBox, QPushButton, QCheckBox,
     QMessageBox, QFileDialog, QSizePolicy, QSpacerItem
 )
-from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont
+from PyQt6.QtGui import QPixmap, QPainter, QColor, QFont, QPen
 from PyQt6.QtCore import Qt, pyqtSignal
 from lensepy import load_dictionary, translate
 from lensepy.css import *
@@ -213,6 +213,8 @@ class ImagesDisplayWidget(QWidget):
         self.setLayout(self.layout)
         # Objects
         self.image = None
+        self.hline_y = None
+        self.vline_x = None
         # GUI Elements
         self.image_display = QLabel('Image to display')
         self.image_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -233,6 +235,17 @@ class ImagesDisplayWidget(QWidget):
             pmap = QPixmap.fromImage(qimage)
             self.image_display.setPixmap(pmap)
 
+    def set_crosshair(self, x: int = None, y: int = None):
+        """
+        Place une barre verticale (x) et/ou horizontale (y) sur l'image.
+        :param x: Position en pixels de la ligne verticale (None = pas de ligne)
+        :param y: Position en pixels de la ligne horizontale (None = pas de ligne)
+        """
+        self.vline_x = x
+        self.hline_y = y
+        if self.image is not None:
+            self._draw_image_with_lines()
+
     def set_image_from_array(self, pixels: np.ndarray, aoi: bool = False) -> None:
         """
         Display a new image from an array (Numpy)
@@ -240,17 +253,39 @@ class ImagesDisplayWidget(QWidget):
         :param aoi: If True, print 'AOI' on the image.
         """
         self.image = np.array(pixels, dtype='uint8')
+        self._draw_image_with_lines(aoi=aoi)
+
+    def _draw_image_with_lines(self, aoi: bool = False):
+        """
+        Redessine l'image en ajoutant AOI + lignes si nécessaire.
+        """
         image_to_display = self.image
         if self.image.shape[1] > self.width or self.image.shape[0] > self.height:
             if self.width-30 > 0 and self.height-30 > 0:
                 image_to_display = resize_image_ratio(self.image, self.height-30, self.width-30)
+
         qimage = array_to_qimage(image_to_display)
+        painter = QPainter(qimage)
+
+        # AOI
         if aoi:
-            painter = QPainter(qimage)
-            painter.setPen(QColor(255, 255, 255))  # Couleur blanche pour le texte
-            painter.setFont(QFont("Arial", 15))  # Police et taille
+            painter.setPen(QColor(255, 255, 255))
+            painter.setFont(QFont("Arial", 15))
             painter.drawText(20, 20, 'AOI')
-            painter.end()
+
+        # Lignes
+        if self.vline_x is not None:
+            pen = QPen(QColor(255, 0, 0), 2, Qt.PenStyle.SolidLine)  # Rouge
+            painter.setPen(pen)
+            painter.drawLine(self.vline_x, 0, self.vline_x, qimage.height())
+
+        if self.hline_y is not None:
+            pen = QPen(QColor(0, 255, 0), 2, Qt.PenStyle.SolidLine)  # Vert
+            painter.setPen(pen)
+            painter.drawLine(0, self.hline_y, qimage.width(), self.hline_y)
+
+        painter.end()
+
         pmap = QPixmap.fromImage(qimage)
         self.image_display.setPixmap(pmap)
 

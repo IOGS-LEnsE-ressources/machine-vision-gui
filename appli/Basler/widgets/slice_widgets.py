@@ -15,6 +15,7 @@ import numpy as np
 from lensepy.pyqt6.widget_combobox import *
 from lensepy.pyqt6.widget_slider import *
 from lensepy.pyqt6.widget_image_display import *
+from lensepy.pyqt6.widget_xy_chart import *
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QComboBox, QPushButton, QLineEdit, QProgressBar,
@@ -46,55 +47,36 @@ class SlicesOptionsWidget(QWidget):
         self.layout = QVBoxLayout()
         self.parent = parent
 
+        self.slider_horizontal = SliderBloc(name=translate('vertical_slice'), unit='',
+                                      min_value=0, max_value=5, integer=True)
+        self.slider_horizontal.set_value(1)
+        self.slider_horizontal.slider_changed.connect(self.action_slider_changed)
 
-        self.check_diff = QCheckBox(text=translate('check_diff_image'))
-        self.check_diff.stateChanged.connect(self.action_button_clicked)
+        self.slider_vertical = SliderBloc(name=translate('horizontal_slice'), unit='',
+                                      min_value=0, max_value=5, integer=True)
+        self.slider_vertical.set_value(1)
+        self.slider_vertical.slider_changed.connect(self.action_slider_changed)
 
-        self.filter_type = ButtonSelectionWidget(parent=self, name=translate('filtre_type'))
-        self.list_options = [translate('filter_blur'),
-                             translate('filter_gaussian'),
-                             translate('filter_median')]
-        self.selected_type = 1
-        self.filter_type.set_list_options(self.list_options)
-        self.filter_type.clicked.connect(self.action_button_clicked)
-        self.filter_type.activate_index(self.selected_type)
-
-        self.kernel_choice = QWidget()
-
-        self.slider_sigma = SliderBloc(name=translate('gaussian_sigma'), unit='',
-                                      min_value=0, max_value=5)
-        self.slider_sigma.set_value(1)
-        self.slider_sigma.set_enabled(False)
-        self.slider_sigma.slider_changed.connect(self.action_button_clicked)
-
-        self.layout.addWidget(self.check_diff)
-        self.layout.addWidget(self.filter_type)
-        self.layout.addWidget(self.kernel_choice)
-        self.layout.addStretch()
-        self.layout.addWidget(self.slider_sigma)
+        self.layout.addWidget(self.slider_horizontal)
+        self.layout.addWidget(self.slider_vertical)
         self.layout.addStretch()
         self.setLayout(self.layout)
 
-    def action_button_clicked(self, event):
+    def set_sliders_range(self, height, width):
+        """Update Sliders range. """
+        self.slider_vertical.set_min_max_slider_values(1, height)
+        self.slider_horizontal.set_min_max_slider_values(1, width)
+
+    def action_slider_changed(self, event):
         """Action performed when a button is clicked."""
         sender = self.sender()
-        if sender == self.check_diff:
-            check_ok = 1 if self.check_diff.isChecked() else 0
-            self.options_changed.emit(f'check_diff:{check_ok}')
-        elif sender == self.filter_type:
-            f_type = self.filter_type.get_selection()
-            self.slider_sigma.set_enabled(False)
-            if f_type == translate('filter_blur'):
-                self.filter = Smooth.BLUR
-            elif f_type == translate('filter_gaussian'):
-                self.filter = Smooth.GAUSS
-                self.slider_sigma.set_enabled(True)
-            elif f_type == translate('filter_median'):
-                self.filter = Smooth.MEDIAN
-        elif sender == self.slider_sigma:
-            sigma = self.slider_sigma.get_value()
+        self.options_changed.emit('tools_slice')
 
-        self.options_changed.emit('smooth_filter')
+    def get_slices_values(self):
+        """Returns pixels values for horizontal and vertical slices in the image."""
+        vert = int(self.slider_vertical.get_value())
+        hor = int(self.slider_horizontal.get_value())
+        return hor, vert
 
     def get_selection(self, image: np.ndarray):
         k_size = self.kernel_choice.get_kernel_size()
@@ -110,6 +92,28 @@ class SlicesOptionsWidget(QWidget):
         return output_image
 
 
+class SliceView(XYChartWidget):
+    """
+    Widget containing a XY chart.
+    """
+
+    def __init__(self, parent):
+        """
+        Default Constructor.
+        :param parent: Parent window of the main widget.
+        """
+        super().__init__(parent=parent)
+        self.__show_grid = True
+
+    def show_grid(self, value=True):
+        """Change the grid display."""
+        self.__show_grid = value
+
+    def refresh_chart(self, last: int = 0):
+        super().refresh_chart(last)
+        self.plot_chart_widget.showGrid(x=self.__show_grid, y=self.__show_grid)
+
+
 if __name__ == '__main__':
     from PyQt6.QtWidgets import QApplication
 
@@ -121,6 +125,7 @@ if __name__ == '__main__':
             self.setGeometry(100, 200, 800, 600)
 
             self.central_widget = SlicesOptionsWidget(self)
+            self.central_widget.set_sliders_range(10, 20)
             self.setCentralWidget(self.central_widget)
 
 

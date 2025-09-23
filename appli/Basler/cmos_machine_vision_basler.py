@@ -202,7 +202,7 @@ class MainWindow(QMainWindow):
             self.central_widget.options_widget.options_changed.connect(self.action_filter_smooth)
 
         elif self.central_widget.mode == 'tools_slice':
-            print('SLICE')
+            self.central_widget.options_widget.options_changed.connect(self.action_slice_tools)
 
     def thread_update_image(self, image_array):
         if image_array is not None:
@@ -703,7 +703,21 @@ class MainWindow(QMainWindow):
 
     def action_slice_tools(self, event):
         """Action performed when an event occurred in the slice tools options widget."""
-        print("Slice Action")
+        h, v = self.central_widget.options_widget.get_slices_values()
+        aoi_array = get_aoi_array(self.image, self.aoi)
+        x_v = np.linspace(0, aoi_array.shape[1]-1, aoi_array.shape[1])
+        y_v = aoi_array[v-1,:]
+        self.central_widget.top_right_widget.set_data(x_v, y_v,
+                                                      x_label='Line position', y_label='Intensity')
+        self.central_widget.top_right_widget.refresh_chart()
+        x_h = np.linspace(0, aoi_array.shape[0]-1, aoi_array.shape[0])
+        y_h = aoi_array[:,h-1]
+        self.central_widget.bot_right_widget.set_data(x_h, y_h,
+                                                      x_label='Line position', y_label='Intensity')
+        self.central_widget.bot_right_widget.refresh_chart()
+
+        self.central_widget.top_left_widget.set_crosshair(x=h, y=v)
+
 
     def resizeEvent(self, event):
         """

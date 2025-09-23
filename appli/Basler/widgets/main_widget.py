@@ -763,12 +763,22 @@ class MainWidget(QWidget):
 
         elif self.mode == 'tools_slice':
             self.update_image(aoi=True)
+
             self.options_widget = SlicesOptionsWidget(self)
+            aoi_size = self.parent.aoi
+            w = aoi_size[2]
+            h = aoi_size[3]
+            self.options_widget.set_sliders_range(h, w)
             self.set_options_widget(self.options_widget)
-            self.top_right_widget = ImagesDisplayWidget(self)
+            self.top_right_widget = SliceView(self)
+            self.top_right_widget.set_title('Horizontal Slice')
+            self.top_right_widget.set_background('white')
+            self.top_right_widget.show_grid(False)
             self.set_top_right_widget(self.top_right_widget)
-            self.bot_right_widget = DoubleHistoWidget(self, name_histo_1='Original Image',
-                                                      name_histo_2='Modified Image')
+            self.bot_right_widget = SliceView(self)
+            self.bot_right_widget.set_title('Vertical Slice')
+            self.bot_right_widget.set_background('white')
+            self.bot_right_widget.show_grid(False)
             self.set_bot_right_widget(self.bot_right_widget)
 
         self.main_signal.emit(event)
