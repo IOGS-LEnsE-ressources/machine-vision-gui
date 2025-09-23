@@ -267,6 +267,8 @@ class ImagesDisplayWidget(QWidget):
         qimage = array_to_qimage(image_to_display)
         painter = QPainter(qimage)
 
+        aspect_ratio = image_to_display.shape[0] / self.image.shape[0]
+
         # AOI
         if aoi:
             painter.setPen(QColor(255, 255, 255))
@@ -277,12 +279,14 @@ class ImagesDisplayWidget(QWidget):
         if self.vline_x is not None:
             pen = QPen(QColor(255, 0, 0), 2, Qt.PenStyle.SolidLine)  # Rouge
             painter.setPen(pen)
-            painter.drawLine(self.vline_x, 0, self.vline_x, qimage.height())
+            painter.drawLine(int(self.vline_x*aspect_ratio), 0,
+                             int(self.vline_x*aspect_ratio), qimage.height())
 
         if self.hline_y is not None:
             pen = QPen(QColor(0, 255, 0), 2, Qt.PenStyle.SolidLine)  # Vert
             painter.setPen(pen)
-            painter.drawLine(0, self.hline_y, qimage.width(), self.hline_y)
+            painter.drawLine(0, int(self.hline_y*aspect_ratio),
+                             qimage.width(), int(self.hline_y*aspect_ratio))
 
         painter.end()
 
