@@ -704,7 +704,7 @@ class MainWindow(QMainWindow):
     def action_slice_tools(self, event):
         """Action performed when an event occurred in the slice tools options widget."""
         h, v = self.central_widget.options_widget.get_slices_values()
-        aoi_array = get_aoi_array(self.image, self.aoi)
+        aoi_array = get_aoi_array(self.raw_image, self.aoi)
         x_v = np.linspace(0, aoi_array.shape[1]-1, aoi_array.shape[1])
         y_v = aoi_array[v-1,:]
         self.central_widget.top_right_widget.set_data(x_v, y_v,
