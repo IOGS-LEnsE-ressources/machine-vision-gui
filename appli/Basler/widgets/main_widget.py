@@ -27,6 +27,7 @@ from widgets.aoi_select_widget import *
 from widgets.quant_samp_widget import *
 from widgets.pre_processing_widget import *
 from widgets.filters_widget import *
+from widgets.slice_widgets import *
 
 BOT_HEIGHT, TOP_HEIGHT = 45, 50
 LEFT_WIDTH, RIGHT_WIDTH = 45, 45
@@ -753,6 +754,16 @@ class MainWidget(QWidget):
         elif self.mode == 'filter_smooth':
             self.update_image(aoi=True)
             self.options_widget = SmoothFilterOptionsWidget(self)
+            self.set_options_widget(self.options_widget)
+            self.top_right_widget = ImagesDisplayWidget(self)
+            self.set_top_right_widget(self.top_right_widget)
+            self.bot_right_widget = DoubleHistoWidget(self, name_histo_1='Original Image',
+                                                      name_histo_2='Modified Image')
+            self.set_bot_right_widget(self.bot_right_widget)
+
+        elif self.mode == 'tools_slice':
+            self.update_image(aoi=True)
+            self.options_widget = SlicesOptionsWidget(self)
             self.set_options_widget(self.options_widget)
             self.top_right_widget = ImagesDisplayWidget(self)
             self.set_top_right_widget(self.top_right_widget)

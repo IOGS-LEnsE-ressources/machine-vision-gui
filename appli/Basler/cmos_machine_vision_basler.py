@@ -201,6 +201,9 @@ class MainWindow(QMainWindow):
             self.check_diff = False
             self.central_widget.options_widget.options_changed.connect(self.action_filter_smooth)
 
+        elif self.central_widget.mode == 'tools_slice':
+            print('SLICE')
+
     def thread_update_image(self, image_array):
         if image_array is not None:
             if self.image_bits_depth > 8:
@@ -301,6 +304,9 @@ class MainWindow(QMainWindow):
         elif self.central_widget.mode == 'filter_smooth':
             self.central_widget.update_image(aoi=True)
             self.action_filter_smooth(None)
+        elif self.central_widget.mode == 'tools_slice':
+            self.central_widget.update_image(aoi=True)
+            self.action_slice_tools(None)
 
     def action_image_from_file(self, event: np.ndarray):
         """
@@ -695,6 +701,9 @@ class MainWindow(QMainWindow):
             eroded = aoi_array - eroded
         self.central_widget.top_right_widget.set_image_from_array(eroded)
 
+    def action_slice_tools(self, event):
+        """Action performed when an event occurred in the slice tools options widget."""
+        print("Slice Action")
 
     def resizeEvent(self, event):
         """
