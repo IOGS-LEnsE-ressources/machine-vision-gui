@@ -29,7 +29,7 @@ from lensecam.basler.camera_basler import get_bits_per_pixel
 from PyQt6.QtWidgets import QMainWindow, QApplication, QFileDialog
 from lensepy.images.processing import *
 
-def save_file_path(default_file_path: str, file_name: str = "", dialog: bool = True) -> str:
+def save_file_path(default_file_path: str, file_name: str = "", dialog: bool = True) -> tuple[str, str]:
     if default_file_path is not None:
         if dialog:
             file_path, _ = QFileDialog.getSaveFileName(None, "PNG/JPG Save",

@@ -7,7 +7,9 @@ autoconnect;Yes
 brandname;Basler
 clock_freq;20
 exposure;20000
-blacklevel;0
+blacklevel;10
+blacklevel_min;0
+blacklevel_max;255
 framerate;5
 #colormode;RGB8
 colormode;Mono12

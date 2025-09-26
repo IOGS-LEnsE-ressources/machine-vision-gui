@@ -234,7 +234,7 @@ class CameraSettingsWidget(QWidget):
         self.slider_exposure_time.slider_changed.connect(self.slider_exposure_time_changing)
 
         self.slider_black_level = SliderBloc(name='name_slider_black_level', unit='gray',
-                                              min_value=0, max_value=100, integer=True)
+                                              min_value=0, max_value=255, integer=True)
         self.slider_black_level.slider_changed.connect(self.slider_black_level_changing)
 
         self.layout.addWidget(self.label_title_camera_settings)

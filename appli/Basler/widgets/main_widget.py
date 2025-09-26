@@ -6,6 +6,8 @@
 .. moduleauthor:: Julien VILLEMEJANE (PRAG LEnsE) <julien.villemejane@institutoptique.fr>
 """
 import sys, os
+import time
+
 import numpy as np
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget,
@@ -386,6 +388,11 @@ class MainWidget(QWidget):
                         #self.menu_action('images')
                         self.init_default_camera_params()
 
+                        self.parent.camera.camera_device.Open()
+                        node = self.parent.camera.camera_device.GetNodeMap().GetNode("BslColorSpace")
+                        print(node.GetValue())
+                        self.parent.camera.camera_device.Close()
+
                         # Start Thread
                         self.parent.image_bits_depth = get_bits_per_pixel(self.parent.camera.get_color_mode())
                         self.parent.camera_thread.start()
@@ -396,7 +403,6 @@ class MainWidget(QWidget):
     def init_default_camera_params(self):
         """Initialize a camera with default_config.txt."""
         print('Default Parameters')
-        '''
         if 'save_images_dir' in self.default_parameters:
             self.parent.saved_dir = self.default_parameters['save_images_dir']
         if 'exposure' in self.default_parameters:
@@ -409,11 +415,8 @@ class MainWidget(QWidget):
         if 'colormode' in self.default_parameters:
             self.parent.camera.set_color_mode(self.default_parameters['colormode'])
         camera = self.parent.camera
-        print(f'Expo = {camera.get_exposure()} us')
         print(f'FPS  = {camera.get_frame_rate()}')
         print(f'Color = {camera.get_color_mode()}')
-        print(f'ExpoRange = {camera.get_exposure_range()}')
-        '''
 
     def clear_layout(self, row: int, column: int) -> None:
         """
