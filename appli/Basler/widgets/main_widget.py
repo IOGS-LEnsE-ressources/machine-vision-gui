@@ -393,6 +393,8 @@ class MainWidget(QWidget):
                         print(node.GetValue())
                         self.parent.camera.camera_device.Close()
 
+                        self.parent.camera_parameters()
+
                         # Start Thread
                         self.parent.image_bits_depth = get_bits_per_pixel(self.parent.camera.get_color_mode())
                         self.parent.camera_thread.start()

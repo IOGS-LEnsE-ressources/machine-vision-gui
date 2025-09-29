@@ -358,6 +358,7 @@ class MainWindow(QMainWindow):
         self.central_widget.main_menu.expo_widget.set_min_max_values(min_expo, max_expo)
         # Start Thread
         self.image_bits_depth = get_bits_per_pixel(self.camera.get_color_mode())
+
         self.camera_thread.start()
 
     def action_aoi_selected(self, event):
@@ -748,6 +749,23 @@ class MainWindow(QMainWindow):
         else:
             event.ignore()
 
+    def camera_parameters(self):
+        """Display all the parameters of the camera"""
+        print(f'Camera BASLER : {self.camera.get_cam_info()}')
+        self.camera.open_cam()
+        for key in self.camera.list_params :
+            try:
+                node = self.camera.camera_nodemap.GetNode(key)
+                if hasattr(node, "GetValue"):
+                    param = node.GetValue()
+                else:
+                    param = None
+            except:
+                param = None
+
+            if param is not None:
+                print(f'{key} = {param}')
+        self.camera.disconnect()
 
 
 app = QApplication(sys.argv)
