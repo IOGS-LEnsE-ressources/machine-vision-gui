@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<appli name="My_App">
+	<module>
+		<name>images</name>
+		<location>lensepy</location>
+	</module>
+	<module>
+		<name>fft_images</name>
+		<location>lensepy</location>
+	</module>
+</appli>
