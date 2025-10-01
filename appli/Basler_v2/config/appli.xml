@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <appli name="My_App">
+    <name>CMOS Machine Vision GUI</name>
+    <organization>LEnsE</organization>
+    <year>2025</year>
     <contributors>
         <contributor>
             <name>Julien VILLEMEJANE</name>
@@ -7,6 +10,7 @@
             <mail>julien.villemejane@institutoptique.fr</mail>
         </contributor>
     </contributors>
+    <display>MODE1</display>
 	<module>
 		<name>images</name>
 		<location>lensepy</location>
