@@ -1,17 +1,24 @@
 import os
-from lensepy import translate
-import xml.etree.ElementTree as ET
-import _app.app_utils as utils
+from _app.app_utils import XMLFileConfig
+from _app.main_view import MainWindow
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from machine_vision_gui import My_Application
+
 
 class MainManager:
     """
     Main widget/application manager.
     """
     def __init__(self, parent=None):
-        self.parent = parent
-        self.xml_app = None     # XML file containing application parameters
+        self.parent: My_Application = parent
+        self.main_window: MainWindow = MainWindow(self)
+        self.xml_app: XMLFileConfig = None     # XML file containing application parameters
         self.list_modules = []  # List of the required modules
-        self.list_main_menu = []    # Name of the modules to display in the main menu
+        self.main_menu_button = []
+        self.app_title = ''
+        self.app_logo = ''
 
     def set_xml_app(self, xml_app):
         """
@@ -20,27 +27,21 @@ class MainManager:
         :return:    True if file exists, else False.
         """
         if os.path.exists(xml_app):
-            self.xml_app = xml_app
+            self.xml_app = XMLFileConfig(xml_app)
+            self.app_logo = self.xml_app.get_parameter_xml('logo') or ''
             self.init_main_menu()
             return True
         else:
             return False
 
     def init_main_menu(self):
+        self.main_menu_button = []
         if self.xml_app is not None:
-            print(f'FP = {self.xml_app}')
             self.list_modules = self._get_list_modules()
-            for module in self.list_modules:
-                print(self._get_module_xml(module))
-                menu_value = utils.get_subparameter_xml(self.xml_app, module, 'name')
-                print(f'\tMV = {menu_value}')
-                self.list_main_menu.append(menu_value)
-            print(self.list_modules)
-            print(self.list_main_menu)
+            self.main_window.set_menu_elements(self.list_modules)
             return True
         else:
             return False
-
 
     def init_views(self):
         pass
@@ -50,28 +51,5 @@ class MainManager:
         Get a list of modules to include in the application.
         :return:
         """
-        modules_list = []
-        if self.xml_app is not None:
-            tree = ET.parse(self.xml_app)
-            xml_root = tree.getroot()
-            modules = xml_root.findall('module')
-            for module in modules:
-                modules_list.append(module.find('name').text)
+        modules_list = self.xml_app.get_list_modules()
         return modules_list
-
-    def _get_module_xml(self, module):
-        """
-        Get information of a module.
-        :param parameter:   Name of the module inside the XML file
-        :return:        Name of the module
-        """
-        if self.xml_app is not None:
-            tree = ET.parse(self.xml_app)
-            xml_root = tree.getroot()
-            modules = xml_root.findall('module')
-            for module_ in modules:
-                if module_.find('name').text == module:
-                    return module_.find('name').text, translate(f'{module_.find('name').text}_menu')
-            return None, None
-        else:
-            return None, None

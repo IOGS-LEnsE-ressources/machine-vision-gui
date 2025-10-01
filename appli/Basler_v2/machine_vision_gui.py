@@ -1,7 +1,7 @@
 import sys
 
-import _app.app_utils as utils
-from PyQt6.QtWidgets import QApplication, QMainWindow
+from _app.app_utils import XMLFileConfig
+from PyQt6.QtWidgets import QApplication
 from _app.main_view import MainWindow
 from _app.main_manager import MainManager
 
@@ -9,36 +9,35 @@ from _app.main_manager import MainManager
 class My_Application(QApplication):
     def __init__(self, *args):
         super().__init__(*args)
-        self.window = MainWindow()
         self.manager = MainManager(self)
+        self.window = self.manager.main_window
         self.config_name = './config/appli.xml'
         self.config_ok = False
         self.config = {}
 
     def init_config(self):
         self.config_ok = self.manager.set_xml_app(self.config_name)
+        xml_data: XMLFileConfig = self.manager.xml_app
         if self.config_ok:
-            self.config['name'] = utils.get_parameter_xml(self.config_name, 'name')
-            self.config['organization'] = utils.get_parameter_xml(self.config_name, 'organization')
-            self.config['year'] = utils.get_parameter_xml(self.config_name, 'year')
+            self.config['name'] = xml_data.get_app_name() or None
+            self.config['organization'] = xml_data.get_parameter_xml('organization') or None
+            self.config['year'] = xml_data.get_parameter_xml('year') or None
             return True
         else:
             return False
 
-
     def show(self):
         # Create main window title
         title = f''
-        if self.config['name'] is not None:
-            title += f'{self.config['name']}'
-        if self.config['organization'] is not None:
-            title += f' / {self.config['organization']}'
-        if self.config['year'] is not None:
-            title += f' - {self.config['year']}'
+        if self.config.get('name'):
+            title += f'{self.config["name"]}'
+        if self.config.get('organization'):
+            title += f' / {self.config["organization"]}'
+        if self.config.get('year'):
+            title += f' - {self.config["year"]}' or ''
         # Display Main Window
         self.window.setWindowTitle(f'{title}')
         self.window.showMaximized()
-
 
 
 def main():
