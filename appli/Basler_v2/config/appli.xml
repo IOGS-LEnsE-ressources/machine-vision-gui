@@ -17,4 +17,5 @@
 		<location>./modules</location>
 	</module>
     <variable name="image"/>
+    <variable name="bits_depth"/>
 </appli>

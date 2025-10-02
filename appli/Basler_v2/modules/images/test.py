@@ -16,6 +16,9 @@ class MainManager:
         self.main_window: MainWindow = MainWindow(self)     # Main window management
         self.controller = ImagesController(self)
         self.xml_module: XMLFileModule = XMLFileModule('./images.xml')
+        self.variables = {}
+        self.variables['image'] = None
+        self.variables['bits_depth'] = None
 
         # For test only
         self.main_window.menu_container.setStyleSheet("background-color:rgb(100,100,100);")

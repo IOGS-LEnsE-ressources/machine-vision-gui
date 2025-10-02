@@ -2,7 +2,6 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QWidget
 
 from typing import TYPE_CHECKING
-
 if TYPE_CHECKING:
     from _app.main_manager import MainManager
 
@@ -48,3 +47,10 @@ class TemplateController:
         :param event:
         """
         self.controller_changed.emit(event)
+
+    def get_variables(self):
+        """
+        Get variables dictionary from the main manager.
+        :return:
+        """
+        return self.parent.variables
