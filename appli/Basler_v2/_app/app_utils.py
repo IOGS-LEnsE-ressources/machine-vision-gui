@@ -47,23 +47,23 @@ class XMLFileConfig:
             modules = xml_root.findall('module')
             for module in modules:
                 modules_list.append(module.find('name').text)
-            print('OK')
         return modules_list
 
-
-    def get_module_info(self, module_name: str):
+    def get_module_path(self, module_name: str):
         """
 
         :param module_name: Name of the module
         :return:
         """
-        tree = ET.parse(self.xml_file)
-        xml_root = tree.getroot()
-        param_value = xml_root.find('name')
-        if param_value is not None:
-            return param_value.text
-        else:
-            return None
+        modules_list = []
+        if self.xml_file is not None:
+            tree = ET.parse(self.xml_file)
+            xml_root = tree.getroot()
+            modules = xml_root.findall('module')
+            for module in modules:
+                if module.find('name').text == module_name:
+                    return module.find('location').text
+        return None
 
     def get_xml_file(self):
         """

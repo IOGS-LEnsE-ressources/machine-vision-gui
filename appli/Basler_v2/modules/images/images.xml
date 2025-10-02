@@ -3,4 +3,5 @@
     <name>images</name>
     <requirements></requirements>
     <display>MODE1</display>
+    <controller>ImagesController</controller>
 </appli>

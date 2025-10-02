@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QLabel, QWidget, QPushButton
 )
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -16,29 +16,35 @@ class MainWindow(QMainWindow):
     """
     Main window of the application.
     """
+
+    menu_changed = pyqtSignal(str)
+
     def __init__(self, parent):
         super().__init__()
         self.parent: MainManager = parent
+        self.app_logo: LogoLabel = None
         self.menu_container = QWidget()
         self.menu_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.menu_layout = QVBoxLayout(self.menu_container)
+        self.menu_button_name_list = []
         self.menu_button_list = []
-
-        ## MAKE A DIFFERENT WIDGET FOR TITLE AND LOGO !!!
+        self.actual_button = None
 
         self.right_container = QWidget()
         self.right_layout = QVBoxLayout(self.right_container)
 
-        title2 = QLabel('Right')
-        title2.setStyleSheet(styleH1)
-        self.right_layout.addWidget(title2)
+        self.top_left_container = QWidget()
+        self.top_right_container = QWidget()
+        self.bot_left_container = QWidget()
+        self.bot_right_container = QWidget()
 
-        main_layout = QHBoxLayout()
-        main_layout.addWidget(self.menu_container, 1)  # 1/7
-        main_layout.addWidget(self.right_container, 6)  # 6/7
+
+        self.main_layout = QHBoxLayout()
+        self.main_layout.addWidget(self.menu_container, 1)  # 1/7
+        self.main_layout.addWidget(self.right_container, 6)  # 6/7
 
         central_widget = QWidget()
-        central_widget.setLayout(main_layout)
+        central_widget.setLayout(self.main_layout)
         self.setCentralWidget(central_widget)
 
     def set_menu_elements(self, elements: list):
@@ -46,43 +52,52 @@ class MainWindow(QMainWindow):
 
         :param elements: List of graphical elements to add.
         """
-        self._clear_menu_layout()
-        # Logo
-        if self.parent.app_logo != '':
-            app_logo = QLabel('Logo')
-            app_logo.setScaledContents(True)
-            app_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            logo = QPixmap(self.parent.app_logo)
-            app_logo = LogoLabel(logo)
-            self.menu_layout.addWidget(app_logo)
-        # Title
-
-        self.menu_layout.addStretch()
+        self.menu_button_list = []
         for element in elements:
             b_title = translate(f'{element}_menu')
             button = QPushButton(b_title)
             button.clicked.connect(self.handle_main_menu)
-            button.setStyleSheet(unactived_button)
             button.setFixedHeight(BUTTON_HEIGHT)
+            self.menu_button_name_list.append(f'{element}')
             self.menu_button_list.append(button)
-            self.menu_layout.addWidget(button)
+        # Logo
+        if self.parent.app_logo != '':
+            logo = QPixmap(self.parent.app_logo)
+            self.app_logo = LogoLabel(logo)
+            w_width = self.parent.main_window.width()
+            h_width = self.parent.main_window.height()
+            self.app_logo.setMinimumHeight(h_width // 4)
+            self.app_logo.setMaximumWidth(w_width // 7)
+            self.menu_layout.addWidget(self.app_logo)
+        # Title
+        if self.parent.app_title != '':
+            app_title = QLabel(self.parent.app_title)
+            app_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            app_title.setStyleSheet(styleH2)
+            self.menu_layout.addWidget(app_title)
+        self.menu_layout.addStretch()
+        self.update_menu()
 
-    def handle_main_menu(self, event):
-        print(event)
-
-    def _clear_menu_layout(self):
-        while self.menu_layout.count():
-            item = self.menu_layout.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.deleteLater()  # Destroy widget
-
-    def set_right_widget(self, widget: QWidget):
+    def update_menu(self):
         """
-        Set the right widget of the main window.
-        :param widget:  Widget to input in the right section of the window.
+
+        :return:
         """
-        self.right_layout.addWidget(widget)
+        for element in self.menu_button_list:
+            if element == self.actual_button:
+                element.setStyleSheet(actived_button)
+            else:
+                element.setStyleSheet(unactived_button)
+            self.menu_layout.addWidget(element)
+
+    def handle_main_menu(self):
+        """
+        Action performed when a button in the menu is clicked.
+        """
+        self.actual_button = self.sender()
+        self.update_menu()
+        indice = self.menu_button_list.index(self.actual_button)
+        self.menu_changed.emit(self.menu_button_name_list[indice])
 
     def set_mode1(self):
         """Disposition 2x2 (par défaut)"""
@@ -95,6 +110,15 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         print('End of application')
 
+    def resizeEvent(self, event):
+        w_width = self.width()
+        h_height = self.height()
+        if self.app_logo:
+            self.app_logo.setMinimumHeight(h_height // 6)
+            self.app_logo.setMaximumWidth(w_width // 7 - 10)
+            self.app_logo.update()  # force le repaint
+        super().resizeEvent(event)
+
 
 class LogoLabel(QLabel):
     def __init__(self, pixmap, parent=None):
@@ -103,7 +127,6 @@ class LogoLabel(QLabel):
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def resizeEvent(self, event):
-        print(f'W = {self.width()} / H = {self.height()}')
         scaled_pixmap = self.original_pixmap.scaled(
             self.width(),
             self.height(),

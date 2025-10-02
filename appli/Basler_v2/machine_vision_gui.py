@@ -2,7 +2,6 @@ import sys
 
 from _app.app_utils import XMLFileConfig
 from PyQt6.QtWidgets import QApplication
-from _app.main_view import MainWindow
 from _app.main_manager import MainManager
 
 
