@@ -1,19 +1,24 @@
 from PyQt6.QtWidgets import QWidget
+from _app.template_controller import TemplateController
+from modules.images.images_views import *
 
-
-class ImagesController:
+class ImagesController(TemplateController):
     """
 
     """
 
-    def __init__(self):
+    def __init__(self, parent=None):
         """
 
         """
-        self.top_left = QWidget()
-        self.top_right = QWidget()
-        self.bot_left = QWidget()
-        self.bot_right = QWidget()
+        super().__init__(parent)
+        self.top_left = ImagesTopLeftWidget(self)
+        self.bot_left = ImagesBotLeftWidget()
+        self.bot_right = ImagesOpeningWidget(self)
+
+    def handle_controller(self, event):
+        super().handle_controller(event)
+        print("Event New")
 
 
         

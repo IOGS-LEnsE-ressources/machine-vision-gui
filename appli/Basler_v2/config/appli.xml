@@ -12,9 +12,9 @@
             <mail>julien.villemejane@institutoptique.fr</mail>
         </contributor>
     </contributors>
-    <display>MODE1</display>
 	<module>
 		<name>images</name>
 		<location>./modules</location>
 	</module>
+    <variable name="image"/>
 </appli>

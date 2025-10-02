@@ -1,8 +1,9 @@
+from PyQt5.QtWidgets import QGridLayout
 from lensepy import translate
 from lensepy.css import *
 from PyQt6.QtWidgets import (
     QMainWindow, QSizePolicy,
-    QHBoxLayout, QVBoxLayout,
+    QHBoxLayout, QVBoxLayout, QGridLayout,
     QLabel, QWidget, QPushButton
 )
 from PyQt6.QtGui import QPixmap
@@ -31,13 +32,15 @@ class MainWindow(QMainWindow):
         self.actual_button = None
 
         self.right_container = QWidget()
-        self.right_layout = QVBoxLayout(self.right_container)
+        self.right_layout = QGridLayout()
+        self.right_container.setLayout(self.right_layout)
 
         self.top_left_container = QWidget()
         self.top_right_container = QWidget()
         self.bot_left_container = QWidget()
         self.bot_right_container = QWidget()
 
+        self.update_containers()
 
         self.main_layout = QHBoxLayout()
         self.main_layout.addWidget(self.menu_container, 1)  # 1/7
@@ -99,13 +102,30 @@ class MainWindow(QMainWindow):
         indice = self.menu_button_list.index(self.actual_button)
         self.menu_changed.emit(self.menu_button_name_list[indice])
 
+    def update_containers(self):
+        """Ajoute les widgets aux positions correctes du layout"""
+        if self.top_left_container:
+            self.right_layout.addWidget(self.top_left_container, 0, 0)
+        if self.top_right_container:
+            self.right_layout.addWidget(self.top_right_container, 0, 1)
+        if self.bot_left_container:
+            self.right_layout.addWidget(self.bot_left_container, 1, 0)
+        if self.bot_right_container:
+            self.right_layout.addWidget(self.bot_right_container, 1, 1)
+
     def set_mode1(self):
         """Disposition 2x2 (par défaut)"""
-        pass
+        self.right_layout.setColumnStretch(0, 1)
+        self.right_layout.setColumnStretch(1, 1)
+        self.right_layout.setRowStretch(0, 1)
+        self.right_layout.setRowStretch(1, 1)
 
     def set_mode2(self):
         """Disposition 1/4 - 3/4 sur hauteur et 2/7 - 4/7 sur largeur"""
-        pass
+        self.right_layout.setColumnStretch(0, 2)
+        self.right_layout.setColumnStretch(1, 1)
+        self.right_layout.setRowStretch(0, 3)
+        self.right_layout.setRowStretch(1, 1)
 
     def closeEvent(self, event):
         print('End of application')

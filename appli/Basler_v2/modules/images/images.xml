@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<appli name="images">
+<appli>
     <name>images</name>
     <requirements></requirements>
-    <display>MODE1</display>
+    <display>MODE2</display>
     <controller>ImagesController</controller>
+    <location>images_controller</location>
 </appli>
