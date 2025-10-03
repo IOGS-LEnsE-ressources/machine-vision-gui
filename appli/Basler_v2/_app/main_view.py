@@ -1,4 +1,3 @@
-from PyQt5.QtWidgets import QGridLayout
 from lensepy import translate
 from lensepy.css import *
 from PyQt6.QtWidgets import (

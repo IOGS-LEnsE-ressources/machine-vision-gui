@@ -40,7 +40,6 @@ class MainManager:
             self.app_logo = self.xml_app.get_parameter_xml('logo') or ''
             self.app_title = self.xml_app.get_parameter_xml('appname') or ''
             if self.init_variables():
-                print(self.variables)
                 return self.init_main_menu()
             return False
         else:
@@ -54,7 +53,6 @@ class MainManager:
 
     def init_main_menu(self):
         if self.xml_app is not None:
-            self.list_modules_name = self._get_list_modules()
             self.main_window.set_menu_elements(self.list_modules_name)
             if self.actual_module == 'default':
                 self.init_controller()
@@ -77,21 +75,21 @@ class MainManager:
             self.controller = controller_class(self)
         self.controller.init_view()
 
-    def _get_list_modules(self):
+    def init_list_modules(self):
         """
         Get a list of modules to include in the application.
         :return:
         """
-        modules_list = self.xml_app.get_list_modules()
+        self.list_modules_name = self.xml_app.get_list_modules()
         # Importation of modules
-        for module in modules_list:
+        for module in self.list_modules_name:
             module_path = self.xml_app.get_module_path(module)
             if './' in module_path:
                 module_path_n = module_path.lstrip("./").replace("/", ".")
                 self.list_modules[module] = importlib.import_module(f'{module_path_n}.{module}')
             else:
                 self.list_modules[module] = importlib.import_module(f'{module_path}.{module}')
-        return modules_list
+
 
     def handle_menu_changed(self, event):
         """

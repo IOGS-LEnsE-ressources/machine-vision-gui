@@ -1,8 +1,11 @@
 import sys
+from importlib.metadata import requires
 
-from _app.app_utils import XMLFileConfig
+from _app.app_utils import XMLFileConfig, XMLFileModule
 from PyQt6.QtWidgets import QApplication
 from _app.main_manager import MainManager
+import importlib
+import importlib.util
 
 
 class My_Application(QApplication):
@@ -25,6 +28,35 @@ class My_Application(QApplication):
         else:
             return False
 
+    def init_app(self):
+        self.manager.init_list_modules()
+
+    def check_dependencies(self):
+        """Check if required dependencies are installed."""
+        required_modules = []
+        missing_modules = []
+        if self.config_ok:
+            modules_list = self.manager.xml_app.get_list_modules()
+            # List the missing modules
+            for module in modules_list:
+                module_path = self.manager.xml_app.get_module_path(module)
+                if './' in module_path:
+                    module_path_n = module_path.lstrip("./").replace("/", ".")
+                    path_module = f'{module_path_n}.{module}'
+                else:
+                    path_module = f'{module_path}.{module}'
+                if importlib.util.find_spec(path_module) is None:
+                    missing_modules.append(module)
+            # List the required modules
+            for module in modules_list:
+                pass
+        print(f'Missing modules: {missing_modules}')
+        print(f'Required modules: {required_modules}')
+        if len(missing_modules) == 0 and len(required_modules) == 0:
+            return True
+        else:
+            return False
+
     def show(self):
         # Create main window title
         title = f''
@@ -42,8 +74,15 @@ class My_Application(QApplication):
 def main():
     app = My_Application(sys.argv)
     if app.init_config():
-        app.show()
-    sys.exit(app.exec())
+        if app.check_dependencies():
+            app.init_app()
+            app.show()
+            sys.exit(app.exec())
+        else:
+            print('Module dependencies failed.')
+            return
+    else:
+        return
 
 
 if __name__ == "__main__":

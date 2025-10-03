@@ -14,6 +14,10 @@
     </contributors>
 	<module>
 		<name>images</name>
+		<location>./moduless</location>
+	</module>
+	<module>
+		<name>fft_images</name>
 		<location>./modules</location>
 	</module>
     <variable name="image"/>
