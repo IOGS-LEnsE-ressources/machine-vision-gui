@@ -32,7 +32,6 @@ class TemplateController:
 
     def update_view(self):
         # Display mode value in XML
-        print(type(self.parent))
         mode = self.parent.xml_module.get_parameter_xml('display')
         if mode == 'MODE2':
             self.parent.main_window.set_mode2()

@@ -51,10 +51,11 @@ class MainWindow(QMainWindow):
 
     def set_menu_elements(self, elements: list):
         """
-
+        Create graphical elements of the main menu.
         :param elements: List of graphical elements to add.
         """
         self.menu_button_list = []
+        print(f'Elements: {elements}')
         for element in elements:
             b_title = translate(f'{element}_menu')
             button = QPushButton(b_title)

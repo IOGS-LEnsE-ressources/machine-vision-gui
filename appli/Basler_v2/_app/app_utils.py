@@ -95,7 +95,8 @@ class XMLFileConfig:
             modules = xml_root.findall('module')
             for module in modules:
                 if module.find('name').text == module_name:
-                    return module.find(parameter).text
+                    if module.find(parameter) is not None:
+                        return module.find(parameter).text
         return None
 
 

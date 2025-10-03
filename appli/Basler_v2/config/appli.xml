@@ -14,10 +14,11 @@
     </contributors>
 	<module>
 		<name>images</name>
-		<location>./moduless</location>
+		<location>./modules</location>
 	</module>
 	<module>
 		<name>fft_images</name>
+        <requirements>images</requirements>
 		<location>./modules</location>
 	</module>
     <variable name="image"/>

@@ -24,11 +24,8 @@ class MainManager:
         self.main_window.menu_container.setStyleSheet("background-color:rgb(100,100,100);")
 
     def init_controller(self):
-        print(type(self.controller.parent))
-        try:
-            self.controller.init_view()
-        except Exception as e:
-            print(e)
+        self.controller.init_view()
+
 
 class My_Application(QApplication):
     def __init__(self, *args):

@@ -40,18 +40,27 @@ class MainManager:
             self.app_logo = self.xml_app.get_parameter_xml('logo') or ''
             self.app_title = self.xml_app.get_parameter_xml('appname') or ''
             if self.init_variables():
+                self.list_modules_name = self.xml_app.get_list_modules()
                 return self.init_main_menu()
             return False
         else:
             return False
 
     def init_variables(self) -> bool:
+        """
+        Initialize variables from application XML file.
+        :return:
+        """
         if self.xml_app is not None:
             self.variables = self.xml_app.get_variables()
             return True
         return False
 
     def init_main_menu(self):
+        """
+        Initialize the main menu from the module list in the application XML file.
+        :return:
+        """
         if self.xml_app is not None:
             self.main_window.set_menu_elements(self.list_modules_name)
             if self.actual_module == 'default':
@@ -80,7 +89,6 @@ class MainManager:
         Get a list of modules to include in the application.
         :return:
         """
-        self.list_modules_name = self.xml_app.get_list_modules()
         # Importation of modules
         for module in self.list_modules_name:
             module_path = self.xml_app.get_module_path(module)

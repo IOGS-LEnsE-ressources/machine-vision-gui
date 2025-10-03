@@ -16,6 +16,10 @@ class My_Application(QApplication):
         self.config_name = './config/appli.xml'
         self.config_ok = False
         self.config = {}
+        # Dependencies
+        self.required_modules = []
+        self.missing_modules = []
+        self.error_modules = []
 
     def init_config(self):
         self.config_ok = self.manager.set_xml_app(self.config_name)
@@ -33,8 +37,6 @@ class My_Application(QApplication):
 
     def check_dependencies(self):
         """Check if required dependencies are installed."""
-        required_modules = []
-        missing_modules = []
         if self.config_ok:
             modules_list = self.manager.xml_app.get_list_modules()
             # List the missing modules
@@ -45,14 +47,20 @@ class My_Application(QApplication):
                     path_module = f'{module_path_n}.{module}'
                 else:
                     path_module = f'{module_path}.{module}'
-                if importlib.util.find_spec(path_module) is None:
-                    missing_modules.append(module)
+
+                try:
+                    if importlib.util.find_spec(path_module) is None:
+                        self.missing_modules.append(module)
+                except ModuleNotFoundError:
+                    self.error_modules.append(module)
             # List the required modules
             for module in modules_list:
-                pass
-        print(f'Missing modules: {missing_modules}')
-        print(f'Required modules: {required_modules}')
-        if len(missing_modules) == 0 and len(required_modules) == 0:
+                req_module = self.manager.xml_app.get_module_parameter(module, 'requirements')
+                if req_module is not None:
+                    if req_module not in modules_list:
+                        self.required_modules.append(req_module)
+        # Output
+        if len(self.missing_modules) == 0 and len(self.required_modules) == 0 and len(self.error_modules) == 0:
             return True
         else:
             return False
@@ -80,6 +88,12 @@ def main():
             sys.exit(app.exec())
         else:
             print('Module dependencies failed.')
+            if len(app.error_modules) != 0:
+                print(f'Module errors: {app.error_modules} / Check the configuration of these modules.')
+            if len(app.required_modules) != 0:
+                print(f'Required modules: {app.required_modules} / These modules are required.')
+            if len(app.missing_modules) != 0:
+                print(f'Missing modules: {app.missing_modules} / These modules are not installed.')
             return
     else:
         return
