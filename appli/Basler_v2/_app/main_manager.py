@@ -83,6 +83,7 @@ class MainManager:
             controller_class = getattr(self.list_modules[self.actual_module], controller_name)
             self.controller = controller_class(self)
         self.controller.init_view()
+        self.check_variables()
 
     def init_list_modules(self):
         """
@@ -98,6 +99,9 @@ class MainManager:
             else:
                 self.list_modules[module] = importlib.import_module(f'{module_path}.{module}')
 
+    def check_variables(self):
+        """Check required variables for this module from the module XML file."""
+        pass
 
     def handle_menu_changed(self, event):
         """

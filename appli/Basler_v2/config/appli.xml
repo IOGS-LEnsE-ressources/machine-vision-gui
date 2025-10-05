@@ -21,6 +21,11 @@
         <requirements>images</requirements>
 		<location>./modules</location>
 	</module>
+	<module>
+		<name>test</name>
+        <requirements>images,fft_images</requirements>
+		<location>./modules</location>
+	</module>
     <variable name="image"/>
     <variable name="bits_depth"/>
 </appli>

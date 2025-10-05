@@ -57,8 +57,10 @@ class My_Application(QApplication):
             for module in modules_list:
                 req_module = self.manager.xml_app.get_module_parameter(module, 'requirements')
                 if req_module is not None:
-                    if req_module not in modules_list:
-                        self.required_modules.append(req_module)
+                    req_module = req_module.split(',')
+                    for r_module in req_module:
+                        if r_module not in modules_list:
+                            self.required_modules.append(r_module)
         # Output
         if len(self.missing_modules) == 0 and len(self.required_modules) == 0 and len(self.error_modules) == 0:
             return True

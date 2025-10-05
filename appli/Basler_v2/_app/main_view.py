@@ -90,6 +90,7 @@ class MainWindow(QMainWindow):
             if element == self.actual_button:
                 element.setStyleSheet(actived_button)
             else:
+                # CHECK IF REQUIRED VARIABLES ARE NOT NONE then UPDATE Menu
                 element.setStyleSheet(unactived_button)
             self.menu_layout.addWidget(element)
 
