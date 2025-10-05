@@ -21,7 +21,13 @@ class ImagesController(TemplateController):
         self.top_right = ImagesInfosWidget(self)
         # Setup widgets
         self.bot_left.set_background('white')
-        self.bot_left.set_bits_depth(8)
+        if self.parent.variables['bits_depth'] is not None:
+            self.bot_left.set_bits_depth(int(self.parent.variables['bits_depth']))
+        else:
+            self.bot_left.set_bits_depth(8)
+        if self.parent.variables['image'] is not None:
+            self.top_left.set_image_from_array(self.parent.variables['image'])
+            self.bot_left.set_image(self.parent.variables['image'])
         self.bot_left.refresh_chart()
         # Signals
         self.bot_right.image_opened.connect(self.action_image_opened)
@@ -39,6 +45,7 @@ class ImagesController(TemplateController):
         self.bot_left.refresh_chart()
         # Update image information
         self.top_right.update_infos(image)
+        self.parent.update_menu()
 
     def display_image(self, image: np.ndarray):
         """

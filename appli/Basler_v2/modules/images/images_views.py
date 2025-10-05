@@ -58,8 +58,9 @@ class ImagesOpeningWidget(QWidget):
         file_path, _ = file_dialog.getOpenFileName(self, translate('dialog_open_image'),
                                                    "", "Images (*.png *.jpg *.jpeg)")
         if file_path != '':
-            image_array = imread_rgb(file_path)
+            image_array, bits_depth = imread_rgb(file_path)
             self.parent.get_variables()['image'] = image_array
+            self.parent.get_variables()['bits_depth'] = bits_depth
             self.image_opened.emit('image_opened')
             return True
         else:
@@ -141,19 +142,20 @@ def imread_rgb(path):
     :return:        np.ndarray RGB image.
     """
     img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+    bits_depth = img.dtype.itemsize * 8
     if img is None:
-        raise ValueError(f"Impossible de charger {path}")
+        raise ValueError(f"Invalid path : {path}")
     if img.ndim == 2:
         # Déjà en gris → on garde tel quel
-        return img
+        return img, bits_depth
     if img.ndim == 3:
         if img.shape[2] == 3:
             # Conversion BGR → RGB
-            return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            return cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 8
         elif img.shape[2] == 4:
             # Conversion BGRA → RGBA
-            return cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
-    return img
+            return cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA), 8
+    return img, bits_depth
 
 class HistogramWidget(QWidget):
     def __init__(self, parent=None):

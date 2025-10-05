@@ -9,6 +9,9 @@ from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, pyqtSignal
 
 from typing import TYPE_CHECKING
+
+from _app.app_utils import XMLFileModule
+
 if TYPE_CHECKING:
     from _app.main_manager import MainManager
 
@@ -89,10 +92,37 @@ class MainWindow(QMainWindow):
         for element in self.menu_button_list:
             if element == self.actual_button:
                 element.setStyleSheet(actived_button)
+                element.setEnabled(True)
             else:
                 # CHECK IF REQUIRED VARIABLES ARE NOT NONE then UPDATE Menu
-                element.setStyleSheet(unactived_button)
+                module_name = self.menu_button_name_list[self.menu_button_list.index(element)]
+                if self.check_variables(module_name):
+                    element.setStyleSheet(unactived_button)
+                    element.setEnabled(True)
+                else:
+                    # Check if the module has requirements (other module)
+                    if self.parent.check_module_requirements(module_name):
+                        element.setStyleSheet(unactived_button)
+                        element.setEnabled(True)
+                    else:
+                        element.setStyleSheet(disabled_button)
+                        element.setEnabled(False)
             self.menu_layout.addWidget(element)
+
+
+    def check_variables(self, module) -> bool:
+        """Check required variables for the specified module from the module XML file.
+        :param module:      Name of the module to check.
+        :return:            True if variables were checked.
+        """
+        var_list = []
+        if module in self.parent.req_variables:
+            var_module_list = self.parent.req_variables[module].split(',')
+            for var_m in var_module_list:
+                if self.parent.get_variable(var_m) is None:
+                    var_list.append(var_m)
+            print(f'Variables: {var_list}')
+        return len(var_list) == 0
 
     def handle_main_menu(self):
         """

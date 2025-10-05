@@ -28,6 +28,7 @@ class MainManager:
         self.app_title = ''         # Title of the application
         self.app_logo = ''          # Logo (filepath) to display of the application
         self.variables = {}         # Application variables
+        self.req_variables = {}     # Required variables for each module (separated by ',')
 
     def set_xml_app(self, xml_app):
         """
@@ -41,6 +42,7 @@ class MainManager:
             self.app_title = self.xml_app.get_parameter_xml('appname') or ''
             if self.init_variables():
                 self.list_modules_name = self.xml_app.get_list_modules()
+                self.req_variables = self.get_module_required_variables()
                 return self.init_main_menu()
             return False
         else:
@@ -83,7 +85,6 @@ class MainManager:
             controller_class = getattr(self.list_modules[self.actual_module], controller_name)
             self.controller = controller_class(self)
         self.controller.init_view()
-        self.check_variables()
 
     def init_list_modules(self):
         """
@@ -99,9 +100,51 @@ class MainManager:
             else:
                 self.list_modules[module] = importlib.import_module(f'{module_path}.{module}')
 
-    def check_variables(self):
-        """Check required variables for this module from the module XML file."""
-        pass
+    def get_module_required_variables(self):
+        """
+        Collect all the required variables for each module of the application.
+        :return:    list of the required variables.
+        """
+        var_list = {}
+        for module in self.list_modules_name:
+            module_path = self.xml_app.get_module_path(module)
+            if './' in module_path:
+                module_path_n = module_path.lstrip("./").replace("/", ".")
+                xml_path = f'{module_path}/{module}/{module}.xml'
+                xml_module = XMLFileModule(xml_path)
+                var_module_list = xml_module.get_parameter_xml('req_var')
+                var_list[module] = var_module_list
+        return var_list
+
+    def check_module_requirements(self, module):
+        """
+        Check if the module parameter 'requirements' is set.
+        :param module:      Name of the module.
+        :return:            True if module parameter 'requirements' is set, else False.
+        """
+        module_path = self.xml_app.get_module_path(module)
+        if './' in module_path:
+            module_path_n = module_path.lstrip("./").replace("/", ".")
+            xml_path = f'{module_path}/{module}/{module}.xml'
+            xml_module = XMLFileModule(xml_path)
+            req_module = xml_module.get_parameter_xml('requirements')
+            return req_module is None
+        return False
+
+    def get_variable(self, name):
+        """
+        Get a variable in the required variable list by its name.
+        :param name:    Name of the variable.
+        :return:        Value of the variable.
+        """
+        if name in self.req_variables:
+            return self.req_variables[name]
+        else:
+            return None
+
+    def update_menu(self):
+        """Update the main menu of the application."""
+        self.main_window.update_menu()
 
     def handle_menu_changed(self, event):
         """
