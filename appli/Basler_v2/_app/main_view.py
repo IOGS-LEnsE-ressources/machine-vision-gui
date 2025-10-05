@@ -58,7 +58,6 @@ class MainWindow(QMainWindow):
         :param elements: List of graphical elements to add.
         """
         self.menu_button_list = []
-        print(f'Elements: {elements}')
         for element in elements:
             b_title = translate(f'{element}_menu')
             button = QPushButton(b_title)
@@ -121,7 +120,6 @@ class MainWindow(QMainWindow):
             for var_m in var_module_list:
                 if self.parent.get_variable(var_m) is None:
                     var_list.append(var_m)
-            print(f'Variables: {var_list}')
         return len(var_list) == 0
 
     def handle_main_menu(self):

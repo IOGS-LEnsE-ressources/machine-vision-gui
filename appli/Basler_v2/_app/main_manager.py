@@ -133,12 +133,12 @@ class MainManager:
 
     def get_variable(self, name):
         """
-        Get a variable in the required variable list by its name.
+        Get a variable in the config list by its name.
         :param name:    Name of the variable.
         :return:        Value of the variable.
         """
-        if name in self.req_variables:
-            return self.req_variables[name]
+        if name in self.variables:
+            return self.variables[name]
         else:
             return None
 
