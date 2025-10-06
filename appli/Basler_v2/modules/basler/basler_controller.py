@@ -57,15 +57,16 @@ class BaslerController(TemplateController):
         """
         Start live acquisition from camera.
         """
-        self.thread = QThread()
-        self.worker = ImageLive(self)
-        self.worker.moveToThread(self.thread)
+        if self.camera_connected:
+            self.thread = QThread()
+            self.worker = ImageLive(self)
+            self.worker.moveToThread(self.thread)
 
-        self.thread.started.connect(self.worker.run)
-        self.worker.image_ready.connect(self.action_image_ready)
-        self.worker.finished.connect(self.thread.quit)
+            self.thread.started.connect(self.worker.run)
+            self.worker.image_ready.connect(self.action_image_ready)
+            self.worker.finished.connect(self.thread.quit)
 
-        self.thread.start()
+            self.thread.start()
 
     def action_image_ready(self):
         """
@@ -136,6 +137,7 @@ class BaslerCamera:
         self.camera_device = None
         self.camera_nodemap = None
         self.opened = False
+        self.list_params = {}
         self.initial_params = {}
 
     def find_first_camera(self) -> bool:
@@ -161,24 +163,26 @@ class BaslerCamera:
 
         :return:
         """
-        # Test if the camera is opened
-        if not self.camera_device.IsOpen():
-            self.camera_device.Open()
-        # Test if the camera is grabbing images
-        if not self.camera_device.IsGrabbing():
-            self.camera_device.StopGrabbing()
+        if self.controller.camera_acquiring:
+            # Test if the camera is opened
+            if not self.camera_device.IsOpen():
+                self.camera_device.Open()
+            # Test if the camera is grabbing images
+            if not self.camera_device.IsGrabbing():
+                self.camera_device.StopGrabbing()
 
-        # Create a list of images
-        self.camera_device.StartGrabbingMax(1)
-        grab_result = self.camera_device.RetrieveResult(100000, pylon.TimeoutHandling_ThrowException)
+            # Create a list of images
+            self.camera_device.StartGrabbingMax(1)
+            grab_result = self.camera_device.RetrieveResult(100000, pylon.TimeoutHandling_ThrowException)
 
-        if grab_result.GrabSucceeded():
-            image = grab_result.Array
-        else:
-            image = None
-        # Free memory
-        grab_result.Release()
-        return image
+            if grab_result.GrabSucceeded():
+                image = grab_result.Array
+            else:
+                image = None
+            # Free memory
+            grab_result.Release()
+            return image
+        return None
 
     def disconnect(self):
         """

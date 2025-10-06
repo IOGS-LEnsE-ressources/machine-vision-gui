@@ -1,3 +1,5 @@
+import sys
+
 import cv2
 import numpy as np
 from lensepy import translate
@@ -5,7 +7,7 @@ from lensepy.css import *
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QFileDialog, QMessageBox,
-    QWidget, QLabel, QPushButton, QFrame, QCheckBox, QSizePolicy
+    QWidget, QLabel, QPushButton, QFrame, QCheckBox, QSizePolicy, QComboBox, QApplication
 )
 from lensepy.images.conversion import resize_image_ratio
 import pyqtgraph as pg
@@ -29,14 +31,19 @@ class CameraInfosWidget(QWidget):
         label.setStyleSheet(styleH2)
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(label)
-
         layout.addWidget(make_hline())
 
         self.label_name = LabelWidget(translate('basler_infos_name'), '')
         layout.addWidget(self.label_name)
         self.label_serial = LabelWidget(translate('basler_infos_serial'), '')
         layout.addWidget(self.label_serial)
+        layout.addWidget(make_hline())
 
+        self.label_size = LabelWidget(translate('basler_infos_size'), '', 'pixels')
+        layout.addWidget(self.label_size)
+        self.color_choice = ['Mono8', 'Mono12']
+        self.label_color_mode = LabelWidget(translate('basler_infos_color_mode'), '')
+        layout.addWidget(self.label_color_mode)
         layout.addWidget(make_hline())
 
         layout.addStretch()
@@ -48,9 +55,17 @@ class CameraInfosWidget(QWidget):
         Update information from camera.
         """
         self.camera: BaslerCamera = self.parent.get_variables()['camera']
-        print(self.camera)
-        self.label_name.set_value(self.camera.get_parameter('DeviceModelName'))
-        self.label_serial.set_value(self.camera.get_parameter('DeviceSerialNumber'))
+        if self.parent.camera_connected:
+            self.label_name.set_value(self.camera.get_parameter('DeviceModelName'))
+            self.label_serial.set_value(self.camera.get_parameter('DeviceSerialNumber'))
+            w = 100
+            h = 20
+            self.label_size.set_value(f'WxH = {w} x {h}')
+        else:
+            print(f'Basler - NO CAMERA')
+            self.label_name.set_value(translate('no_camera'))
+            self.label_serial.set_value(translate('no_camera'))
+            self.label_size.set_value('')
 
 
 
@@ -203,6 +218,61 @@ class HistogramWidget(QWidget):
                 self.bar_l.setOpts(x=bins[:-1], height=hist_l, width=1)
                 self.plot.addItem(self.bar_l)
 
+class SelectWidget(QWidget):
+    """
+    Widget including a select list.
+    """
+    def __init__(self, title: str, values: list, units: str = None):
+        """
+
+        :param title:   Title of the widget.
+        :param values:  Values of the selection list.
+        :param units:   Units of the data.
+        """
+        super().__init__()
+        # Graphical objects
+        self.label_title = QLabel(title)
+        self.label_title.setStyleSheet(styleH2)
+        self.combo_box = QComboBox()
+        self.combo_box.addItems(values)
+        # Layout
+        layout = QHBoxLayout()
+        layout.addWidget(self.label_title, 2)
+        layout.addWidget(self.combo_box, 2)
+        if units is not None:
+            layout.addWidget(units, 1)
+        self.setLayout(layout)
+
+    def get_selected_value(self) -> str:
+        """Retourne la valeur actuellement sélectionnée."""
+        return self.combo_box.currentText()
+
+    def set_values(self, values: list[str]):
+        """Change les valeurs de la liste déroulante."""
+        self.combo_box.clear()
+        self.combo_box.addItems(values)
+
+    def set_title(self, title: str):
+        """
+        Change the title of the selection object.
+        :param title:   Title of the selection object.
+        """
+        self.label_title.setText(title)
+
+
+# --- Exemple d’utilisation ---
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+
+    # Exemple : label et liste de valeurs
+    values = ["Option 1", "Option 2", "Option 3"]
+    widget = SelectWidget("Choisissez une option :", values)
+    widget.show()
+
+    sys.exit(app.exec())
+
+
+
 class LabelWidget(QWidget):
     def __init__(self, title: str, value: str, units: str = None):
         super().__init__()
@@ -227,17 +297,3 @@ class LabelWidget(QWidget):
         """Update widget value."""
         self.value.setText(value)
 
-
-
-if __name__ == "__main__":
-    import sys
-    from PyQt6.QtWidgets import QApplication
-    app = QApplication(sys.argv)
-    w = CameraInfosWidget()
-    w.resize(800, 600)
-    w.show()
-
-    # Exemple : image RGB aléatoire
-    img = (np.random.rand(256, 256, 3) * 255).astype(np.uint8)
-
-    sys.exit(app.exec())
