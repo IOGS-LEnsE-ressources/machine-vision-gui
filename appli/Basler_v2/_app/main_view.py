@@ -117,7 +117,6 @@ class MainWindow(QMainWindow):
         var_list = []
         if module in self.parent.req_variables:
             var_module_list = self.parent.req_variables[module]
-            print(var_module_list)
             if var_module_list is not None:
                 var_module_list = self.parent.req_variables[module].split(',')
                 for var_m in var_module_list:
@@ -130,9 +129,9 @@ class MainWindow(QMainWindow):
         Action performed when a button in the menu is clicked.
         """
         self.actual_button = self.sender()
-        self.update_menu()
         indice = self.menu_button_list.index(self.actual_button)
         self.menu_changed.emit(self.menu_button_name_list[indice])
+        self.update_menu()
 
     def update_containers(self):
         """Ajoute les widgets aux positions correctes du layout"""
