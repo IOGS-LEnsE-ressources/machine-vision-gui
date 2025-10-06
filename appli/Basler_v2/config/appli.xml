@@ -13,19 +13,16 @@
         </contributor>
     </contributors>
 	<module>
-		<name>images</name>
+		<name>basler</name>
 		<location>./modules</location>
 	</module>
 	<module>
 		<name>fft_images</name>
-        <requirements>images</requirements>
-		<location>./modules</location>
-	</module>
-	<module>
-		<name>test</name>
-        <requirements>images,fft_images</requirements>
+        <requirements>images/basler</requirements>
 		<location>./modules</location>
 	</module>
     <variable name="image"/>
     <variable name="bits_depth"/>
+    <variable name="fft_image"/>
+    <variable name="camera"/>
 </appli>

@@ -60,8 +60,19 @@ class My_Application(QApplication):
                 if req_module is not None:
                     req_module = req_module.split(',')
                     for r_module in req_module:
-                        if r_module not in modules_list:
-                            self.required_modules.append(r_module)
+                        rr_module = r_module.split('/')
+                        print(f'rr_module: {rr_module}')
+                        if len(rr_module) == 1:
+                            if r_module not in modules_list:
+                                self.required_modules.append(r_module)
+                        else:
+                            counter_req = 0
+                            for rrr_module in rr_module:
+                                if rrr_module in modules_list:
+                                    counter_req = counter_req + 1
+                            if counter_req == 0:
+                                self.required_modules.append(r_module)
+
         # Output
         if len(self.missing_modules) == 0 and len(self.required_modules) == 0 and len(self.error_modules) == 0:
             return True
