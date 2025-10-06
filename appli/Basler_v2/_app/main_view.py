@@ -116,10 +116,13 @@ class MainWindow(QMainWindow):
         """
         var_list = []
         if module in self.parent.req_variables:
-            var_module_list = self.parent.req_variables[module].split(',')
-            for var_m in var_module_list:
-                if self.parent.get_variable(var_m) is None:
-                    var_list.append(var_m)
+            var_module_list = self.parent.req_variables[module]
+            print(var_module_list)
+            if var_module_list is not None:
+                var_module_list = self.parent.req_variables[module].split(',')
+                for var_m in var_module_list:
+                    if self.parent.get_variable(var_m) is None:
+                        var_list.append(var_m)
         return len(var_list) == 0
 
     def handle_main_menu(self):
