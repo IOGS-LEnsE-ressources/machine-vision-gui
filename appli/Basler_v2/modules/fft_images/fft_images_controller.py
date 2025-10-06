@@ -16,36 +16,43 @@ class FFTImagesController(TemplateController):
         """
         super().__init__(parent)
         self.top_left = ImageDisplayWidget()
-        self.bot_left = HistogramWidget()
-        self.bot_right = ImagesOpeningWidget(self)
-        self.top_right = ImagesInfosWidget(self)
+        self.top_right = ImageDisplayWidget()
+        self.bot_left = QWidget()
+        self.bot_right = QWidget()
         # Setup widgets
-        self.bot_left.set_background('white')
-        self.bot_left.set_bits_depth(8)
-        self.bot_left.refresh_chart()
+
         # Signals
-        self.bot_right.image_opened.connect(self.action_image_opened)
 
-    def action_image_opened(self, event):
+        self.process_FFT()
+
+    def process_FFT(self):
+        image = self.parent.variables['image']
+        img_lum = np.zeros_like(image)
+        if image.ndim == 3:
+            r_img = image[..., 0].astype(float)
+            g_img = image[..., 1].astype(float)
+            b_img = image[..., 2].astype(float)
+            # Luminance / Rec. 709
+            img_lum = 0.2126 * r_img + 0.7152 * g_img + 0.0722 * b_img
+        elif image.ndim == 2:
+            # Déjà grayscale
+            img_lum = image.astype(float)
+        if img_lum is not None:
+            fft_img = np.fft.fft2(img_lum)
+            fft_img_shift = np.fft.fftshift(fft_img)
+            magnitude_spectrum = 20 * np.log(np.abs(fft_img_shift) + 0.001)
+            self.parent.variables['fft_image'] = magnitude_spectrum
+        self.display_image_fft()
+
+    def display_image_fft(self):
         """
-        Action performed when an image is opened via the bot_right widget.
+        Display the main image and its FFT.
         :return:
         """
-        image = self.get_variables()['image']
-        # Display image
-        self.display_image(image)
-        # Update histogram
-        self.bot_left.set_image(image)
-        self.bot_left.refresh_chart()
-        # Update image information
-        self.top_right.update_infos(image)
-
-    def display_image(self, image: np.ndarray):
-        """
-        Display the image given as a numpy array.
-        :param image:   numpy array containing the data.
-        :return:
-        """
+        image = self.parent.variables['image']
         self.top_left.set_image_from_array(image)
+        if self.parent.variables['fft_image'] is not None:
+            fft_image = self.parent.variables['fft_image']
+            self.top_right.set_image_from_array(fft_image)
 
 
