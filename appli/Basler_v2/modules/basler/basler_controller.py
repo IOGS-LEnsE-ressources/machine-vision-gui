@@ -18,7 +18,7 @@ class BaslerController(TemplateController):
         self.top_left = ImageDisplayWidget()
         self.bot_left = HistogramWidget()
         self.bot_right = QWidget()
-        self.top_right = CameraInfosWidget(self)
+        self.top_right = QWidget()
         # Setup widgets
         self.bot_left.set_background('white')
         if self.parent.variables['bits_depth'] is not None:
@@ -34,12 +34,14 @@ class BaslerController(TemplateController):
         self.camera_acquiring = False       # Camera is acquiring
         self.thread = None
         self.worker = None
+        self.colormode = []
+        self.colormode_bits_depth = []
 
         # Signals
 
         # Init Camera
         self.init_camera()
-
+        self.top_right = CameraInfosWidget(self)
         self.top_right.update_infos()
         # Start thread
         self.start_live()
@@ -49,9 +51,17 @@ class BaslerController(TemplateController):
 
         :return:
         """
+        # Get color mode list
+        colormode_get = self.parent.xml_app.get_sub_parameter('camera','colormode')
+        colormode_get = colormode_get.split(',')
+        for colormode in colormode_get:
+            colormode_v = colormode.split(':')
+            self.colormode.append(colormode_v[0])
+            self.colormode_bits_depth.append(int(colormode_v[1]))
+        print(f'Colormode: {self.colormode}')
+        # Init Camera
         self.parent.variables["camera"] = BaslerCamera(self)
         self.camera_connected = self.parent.variables["camera"].find_first_camera()
-        print(f'Camera =: {self.parent.variables["camera"]}')
 
     def start_live(self):
         """
@@ -107,7 +117,6 @@ class ImageLive(QObject):
                 self.controller.camera_acquiring = True
             # Update image
             self.controller.parent.variables["image"] = camera.get_image()
-            #time.sleep(0.001)
             self.image_ready.emit()
         self.finished.emit()
 

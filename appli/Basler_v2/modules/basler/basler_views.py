@@ -20,6 +20,8 @@ class CameraInfosWidget(QWidget):
     """
     Widget to display image infos.
     """
+    color_mode_changed = pyqtSignal(str)
+
     def __init__(self, parent=None):
         super().__init__(None)
         self.parent: BaslerController = parent
@@ -41,8 +43,9 @@ class CameraInfosWidget(QWidget):
 
         self.label_size = LabelWidget(translate('basler_infos_size'), '', 'pixels')
         layout.addWidget(self.label_size)
-        self.color_choice = ['Mono8', 'Mono12']
-        self.label_color_mode = LabelWidget(translate('basler_infos_color_mode'), '')
+        self.color_choice = self.parent.colormode
+        self.label_color_mode = SelectWidget(translate('basler_infos_color_mode'), self.color_choice)
+        self.label_color_mode.choice_selected.connect(self.handle_color_mode_changed)
         layout.addWidget(self.label_color_mode)
         layout.addWidget(make_hline())
 
@@ -50,17 +53,25 @@ class CameraInfosWidget(QWidget):
         self.setLayout(layout)
         #self.update_infos()
 
+    def handle_color_mode_changed(self, event):
+        """
+        Action performed when color mode is changed.
+        """
+        print(f'CM_changed : {event}')
+
     def update_infos(self):
         """
         Update information from camera.
         """
         self.camera: BaslerCamera = self.parent.get_variables()['camera']
         if self.parent.camera_connected:
+            self.camera.open()
             self.label_name.set_value(self.camera.get_parameter('DeviceModelName'))
             self.label_serial.set_value(self.camera.get_parameter('DeviceSerialNumber'))
-            w = 100
-            h = 20
+            w = str(self.camera.get_parameter('SensorWidth'))
+            h = str(self.camera.get_parameter('SensorHeight'))
             self.label_size.set_value(f'WxH = {w} x {h}')
+            self.camera.close()
         else:
             print(f'Basler - NO CAMERA')
             self.label_name.set_value(translate('no_camera'))
@@ -222,6 +233,8 @@ class SelectWidget(QWidget):
     """
     Widget including a select list.
     """
+    choice_selected = pyqtSignal(str)
+
     def __init__(self, title: str, values: list, units: str = None):
         """
 
@@ -235,6 +248,7 @@ class SelectWidget(QWidget):
         self.label_title.setStyleSheet(styleH2)
         self.combo_box = QComboBox()
         self.combo_box.addItems(values)
+        self.combo_box.currentIndexChanged.connect(self.handle_choice_selected)
         # Layout
         layout = QHBoxLayout()
         layout.addWidget(self.label_title, 2)
@@ -243,12 +257,23 @@ class SelectWidget(QWidget):
             layout.addWidget(units, 1)
         self.setLayout(layout)
 
+    def handle_choice_selected(self):
+        """
+        Action performed when the colormode choice changed.
+        """
+        index = self.combo_box.currentIndex()
+        value = self.combo_box.currentText()
+        print(index)
+        self.choice_selected.emit(str(index))
+
     def get_selected_value(self) -> str:
-        """Retourne la valeur actuellement sélectionnée."""
+        """Get the selected value."""
         return self.combo_box.currentText()
 
     def set_values(self, values: list[str]):
-        """Change les valeurs de la liste déroulante."""
+        """Update the list of values.
+        :param values: List of values.
+        """
         self.combo_box.clear()
         self.combo_box.addItems(values)
 

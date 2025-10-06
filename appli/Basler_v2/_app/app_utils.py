@@ -99,6 +99,19 @@ class XMLFileConfig:
                         return module.find(parameter).text
         return None
 
+    def get_sub_parameter(self, parameter: str, sub_parameter: str):
+        """
+        Get a sub parameter in the XML config file.
+        :param parameter:       Name of the parameter to get.
+        :param sub_parameter:    Name of the sub paramter to get.
+        :return:    Value of the sub parameter.
+        """
+        if self.xml_file is not None:
+            tree = ET.parse(self.xml_file)
+            xml_root = tree.getroot()
+            module = xml_root.find(parameter)
+            return module.find(sub_parameter).text
+        return None
 
     def get_xml_file(self):
         """
