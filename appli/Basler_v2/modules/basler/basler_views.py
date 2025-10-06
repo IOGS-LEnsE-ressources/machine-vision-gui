@@ -10,6 +10,9 @@ from PyQt6.QtWidgets import (
 from lensepy.images.conversion import resize_image_ratio
 import pyqtgraph as pg
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from modules.basler.basler_controller import BaslerController, BaslerCamera
 
 class CameraInfosWidget(QWidget):
     """
@@ -17,10 +20,10 @@ class CameraInfosWidget(QWidget):
     """
     def __init__(self, parent=None):
         super().__init__(None)
-        self.parent = parent
+        self.parent: BaslerController = parent
         layout = QVBoxLayout()
 
-        self.image = None
+        self.camera = self.parent.get_variables()['camera']
 
         label = QLabel(translate('basler_infos_title'))
         label.setStyleSheet(styleH2)
@@ -29,31 +32,25 @@ class CameraInfosWidget(QWidget):
 
         layout.addWidget(make_hline())
 
-        self.label_w = LabelWidget(translate("image_infos_label_w"), '', 'pixels')
-        layout.addWidget(self.label_w)
-        self.label_h = LabelWidget(translate("image_infos_label_h"), '', 'pixels')
-        layout.addWidget(self.label_h)
+        self.label_name = LabelWidget(translate('basler_infos_name'), '')
+        layout.addWidget(self.label_name)
+        self.label_serial = LabelWidget(translate('basler_infos_serial'), '')
+        layout.addWidget(self.label_serial)
 
         layout.addWidget(make_hline())
 
-        self.label_type = LabelWidget(translate("image_infos_label_type"), '', '')
-        layout.addWidget(self.label_type)
-
         layout.addStretch()
         self.setLayout(layout)
+        #self.update_infos()
 
-    def update_infos(self, image: np.ndarray):
+    def update_infos(self):
         """
-        Update information from image.
-        :param image:   Displayed image.
+        Update information from camera.
         """
-        self.image = image
-        self.label_w.set_value(f'{self.image.shape[1]}')
-        self.label_h.set_value(f'{self.image.shape[0]}')
-        if self.image.ndim == 2:
-            self.label_type.set_value(f'GrayScale')
-        else:
-            self.label_type.set_value(f'RGB')
+        self.camera: BaslerCamera = self.parent.get_variables()['camera']
+        print(self.camera)
+        self.label_name.set_value(self.camera.get_parameter('DeviceModelName'))
+        self.label_serial.set_value(self.camera.get_parameter('DeviceSerialNumber'))
 
 
 
@@ -207,7 +204,7 @@ class HistogramWidget(QWidget):
                 self.plot.addItem(self.bar_l)
 
 class LabelWidget(QWidget):
-    def __init__(self, title: str, value: str, units: str):
+    def __init__(self, title: str, value: str, units: str = None):
         super().__init__()
         widget_w = QWidget()
         layout_w = QHBoxLayout()
@@ -222,7 +219,8 @@ class LabelWidget(QWidget):
         self.units.setStyleSheet(styleH3)
         layout_w.addWidget(self.title, 2)
         layout_w.addWidget(self.value, 2)
-        layout_w.addWidget(self.units, 1)
+        if units is not None:
+            layout_w.addWidget(self.units, 1)
         self.setLayout(layout_w)
 
     def set_value(self, value):

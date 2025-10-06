@@ -18,7 +18,7 @@ class BaslerController(TemplateController):
         self.top_left = ImageDisplayWidget()
         self.bot_left = HistogramWidget()
         self.bot_right = QWidget()
-        self.top_right = CameraInfosWidget()
+        self.top_right = CameraInfosWidget(self)
         # Setup widgets
         self.bot_left.set_background('white')
         if self.parent.variables['bits_depth'] is not None:
@@ -39,6 +39,8 @@ class BaslerController(TemplateController):
 
         # Init Camera
         self.init_camera()
+
+        self.top_right.update_infos()
         # Start thread
         self.start_live()
 

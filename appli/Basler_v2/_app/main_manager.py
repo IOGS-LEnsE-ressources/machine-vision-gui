@@ -2,11 +2,9 @@ import os
 from _app.app_utils import XMLFileConfig, XMLFileModule
 from _app.main_view import MainWindow
 import importlib
-
-from typing import TYPE_CHECKING
-
 from modules.default.default_controller import DefaultController
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from machine_vision_gui import My_Application
 

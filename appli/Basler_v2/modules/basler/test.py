@@ -12,13 +12,16 @@ class MainManager:
     Main widget/application manager.
     """
     def __init__(self, parent=None):
+        # Variables
+        self.variables = {}
+        self.variables['image'] = None
+        self.variables['bits_depth'] = 8
+        self.variables['camera'] = None
+        # Initialization
         self.parent: My_Application = parent    # Parent application
         self.main_window: MainWindow = MainWindow(self)     # Main window management
         self.controller = BaslerController(self)
-        self.xml_module: XMLFileModule = XMLFileModule('./images.xml')
-        self.variables = {}
-        self.variables['image'] = None
-        self.variables['bits_depth'] = None
+        self.xml_module: XMLFileModule = XMLFileModule('./basler.xml')
 
         # For test only
         self.main_window.menu_container.setStyleSheet("background-color:rgb(100,100,100);")
