@@ -31,7 +31,6 @@ class BaslerController(TemplateController):
         self.bot_left.refresh_chart()
         # Variables
         self.camera_connected = False       # Camera is connected
-        self.camera_acquiring = False       # Camera is acquiring
         self.thread = None
         self.worker = None
         self.colormode = []
@@ -62,7 +61,7 @@ class BaslerController(TemplateController):
             self.colormode_bits_depth.append(int(colormode_v[1]))
         print(f'Colormode: {self.colormode}')
         # Init Camera
-        self.parent.variables["camera"] = BaslerCamera(self)
+        self.parent.variables["camera"] = BaslerCamera()
         self.camera_connected = self.parent.variables["camera"].find_first_camera()
 
     def start_live(self):
@@ -98,7 +97,6 @@ class BaslerController(TemplateController):
                 # Cleaning worker
                 self.worker = None
                 self.thread = None
-                self.camera_acquiring = False
             except Exception as e:
                 print(f"Error while stopping live: {e}")
 
@@ -180,7 +178,7 @@ class ImageLive(QObject):
         camera = self.controller.parent.variables["camera"]
         self._running = True
         camera.open()
-        self.controller.camera_acquiring = True
+        camera.camera_acquiring = True
         # Running worker
         while self._running:
             try:
@@ -198,7 +196,7 @@ class ImageLive(QObject):
             camera.close()
         except Exception as e:
             print(f"Closing error : {e}")
-        self.controller.camera_acquiring = False
+        camera.camera_acquiring = False
         self.finished.emit()
 
     def stop(self):
@@ -226,16 +224,15 @@ class BaslerCamera:
     Class to manage Basler camera.
     """
 
-    def __init__(self, controller: BaslerController):
+    def __init__(self):
         """
-
-        :param controller:  Basler controller.
+        Basler Camera constructor.
         """
-        self.controller = controller
         # Variables
         self.camera_device = None
         self.camera_nodemap = None
         self.opened = False
+        self.camera_acquiring = False
         self.list_params = {}
         self.initial_params = {}
 
@@ -266,7 +263,7 @@ class BaslerCamera:
         Get image from the camera.
         :return:    Array containing the image.
         """
-        if self.controller.camera_acquiring:
+        if self.camera_acquiring:
             # Test if the camera is opened
             if not self.camera_device.IsOpen():
                 self.camera_device.Open()
@@ -401,11 +398,13 @@ class BaslerCamera:
         :param value:   Value to give to the parameter.
         """
         if param in self.list_params:
+            self.open()
             node = self.camera_nodemap.GetNode(param)
             try:
                 if hasattr(node, "GetAccessMode") and node.GetAccessMode() == genicam.RW:
                     if hasattr(node, "SetValue"):
                         node.SetValue(value)
+                        self.close()
                         return True
                     else:
                         print(f"Node {param} has no SetValue()")
@@ -415,4 +414,33 @@ class BaslerCamera:
                 print(f"Error setting parameter {param}: {e}")
         else:
             print(f"Parameter {param} not found in list_params")
+        self.close()
         return False
+
+
+if __name__ == "__main__":
+    camera = BaslerCamera()
+    camera.find_first_camera()
+    camera.set_parameter('ExposureTime', 10000)
+    camera.set_parameter('PixelFormat', 'Mono12')
+    camera.camera_acquiring = True
+    image = camera.get_image()
+    camera.camera_acquiring = False
+
+    print(f'Image Shape = {image.shape} / Dtype = {image.dtype}')
+    camera.disconnect()
+
+    import matplotlib.pyplot as plt
+    plt.figure()
+    plt.imshow(image)
+
+
+    hist, bins = np.histogram(image, bins=4096, range=(0, 4095))
+
+    # Affichage
+    plt.figure(figsize=(8,4))
+    plt.bar(bins[:-1], hist, width=1, color='black')
+    plt.title("Histogramme de l'image")
+    plt.xlabel("Intensité des pixels")
+    plt.ylabel("Nombre de pixels")
+    plt.show()
