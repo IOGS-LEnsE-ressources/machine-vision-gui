@@ -2,7 +2,7 @@ import time
 from PyQt6.QtCore import QObject, QThread
 from _app.template_controller import TemplateController
 from modules.basler.basler_views import *
-from lensepy.pyqt6.widget_image_display import ImageDisplayWidget
+#from lensepy.pyqt6.widget_image_display import ImageDisplayWidget
 
 
 class BaslerController(TemplateController):
@@ -12,7 +12,7 @@ class BaslerController(TemplateController):
 
     def __init__(self, parent=None):
         """
-
+        :param parent:
         """
         super().__init__(parent)
         self.top_left = ImageDisplayWidget()
@@ -75,12 +75,34 @@ class BaslerController(TemplateController):
             self.worker.moveToThread(self.thread)
 
             self.thread.started.connect(self.worker.run)
-            self.worker.image_ready.connect(self.action_image_ready)
+            self.worker.image_ready.connect(self.handle_image_ready)
             self.worker.finished.connect(self.thread.quit)
+
+            self.worker.finished.connect(self.worker.deleteLater)
+            self.worker.finished.connect(self.thread.deleteLater)
 
             self.thread.start()
 
-    def action_image_ready(self):
+    def stop_live(self):
+        """
+        Stop live mode, i.e. continuous image acquisition.
+        """
+        if self.worker is not None:
+            try:
+                # Stopping worker
+                self.worker.stop()
+                # Wait end of thread
+                if self.thread is not None:
+                    self.thread.quit()
+                    self.thread.wait(500)  # 500 ms wait
+                # Cleaning worker
+                self.worker = None
+                self.thread = None
+                self.camera_acquiring = False
+            except Exception as e:
+                print(f"Error while stopping live: {e}")
+
+    def handle_image_ready(self):
         """
         Action performed when an image is opened via the bot_right widget.
         :return:
@@ -89,7 +111,7 @@ class BaslerController(TemplateController):
         image = self.parent.variables['image']
         self.top_left.set_image_from_array(image)
         # Update Histo
-        self.bot_left.set_image(image)
+        self.bot_left.set_image(image, checked=False)
 
     def display_image(self, image: np.ndarray):
         """
@@ -103,7 +125,46 @@ class BaslerController(TemplateController):
         """
         Action performed when the color mode changed.
         """
-        print(f'CM_CHANGED = {event}')
+        try:
+            camera = self.parent.variables["camera"]
+            # Stop live safely
+            self.stop_live()
+            # Close camera
+            camera.close()
+            # Read available formats
+            available_formats = []
+            try:
+                if camera.camera_device is not None:
+                    camera.open()
+                    available_formats = list(camera.camera_device.PixelFormat.Symbolics)
+                    camera.close()
+            except Exception as e:
+                print(f"Unable to read PixelFormat.Symbolics: {e}")
+            # Select new format
+            idx = int(event)
+            new_format = self.colormode[idx] if idx < len(self.colormode) else None
+
+            if new_format is None:
+                return
+            if new_format in available_formats:
+                camera.open()
+                camera.set_parameter("PixelFormat", new_format)
+                camera.initial_params["PixelFormat"] = new_format
+                camera.close()
+            else:
+                print(f"Format {new_format} not in available formats: {available_formats}")
+            # Change bits depth
+            self.parent.variables['bits_depth'] = self.colormode_bits_depth[idx]
+            self.bot_left.set_bits_depth(int(self.parent.variables['bits_depth']))
+            self.top_left.set_bits_depth(int(self.parent.variables['bits_depth']))
+            #self.bot_left.set_image(self.parent.variables['image'], checked=True)
+            #self.top_left.set_image(self.parent.variables['image'])
+            # Restart live
+            camera.open()
+            self.start_live()
+
+        except Exception as e:
+            print(f"Error in handle_color_mode_changed: {e}")
 
 
 class ImageLive(QObject):
@@ -113,29 +174,51 @@ class ImageLive(QObject):
     def __init__(self, controller: BaslerController):
         super().__init__()
         self.controller = controller
-        self._running = True
+        self._running = False
 
     def run(self):
         camera = self.controller.parent.variables["camera"]
+        self._running = True
+        camera.open()
+        self.controller.camera_acquiring = True
+        # Running worker
         while self._running:
-            if not self.controller.camera_acquiring:
-                print("Start ACQUISITION")
-                camera.open()
-                self.controller.camera_acquiring = True
-            # Update image
-            self.controller.parent.variables["image"] = camera.get_image()
-            self.image_ready.emit()
+            try:
+                if not self._running:
+                    break
+                # Image acquisition
+                self.controller.parent.variables["image"] = camera.get_image()
+                self.image_ready.emit()
+            except Exception as e:
+                print(f"Get Image Error : {e}")
+                break
+            time.sleep(0.001)
+        # Close worker
+        try:
+            camera.close()
+        except Exception as e:
+            print(f"Closing error : {e}")
+        self.controller.camera_acquiring = False
         self.finished.emit()
 
     def stop(self):
-        camera = self.controller.parent.variables["camera"]
-        camera.close()
+        """
+        Stop the worker.
+        """
         self._running = False
+        time.sleep(0.01)
+        try:
+            camera = self.controller.parent.variables["camera"]
+            if camera.is_open:
+                camera.close()
+        except Exception as e:
+            print(f"Camera close error during stop: {e}")
+
 
 # TO MOVE TO LENSEPY v2
 
 import os
-from pypylon import pylon
+from pypylon import pylon, genicam
 
 
 class BaslerCamera:
@@ -155,6 +238,10 @@ class BaslerCamera:
         self.opened = False
         self.list_params = {}
         self.initial_params = {}
+
+    @property
+    def is_open(self):
+        return self.opened and self.camera_device is not None and self.camera_device.IsOpen()
 
     def find_first_camera(self) -> bool:
         """
@@ -176,8 +263,8 @@ class BaslerCamera:
 
     def get_image(self):
         """
-
-        :return:
+        Get image from the camera.
+        :return:    Array containing the image.
         """
         if self.controller.camera_acquiring:
             # Test if the camera is opened
@@ -195,8 +282,14 @@ class BaslerCamera:
                 image = grab_result.Array
             else:
                 image = None
+            print(f'Init Image Type = {image.dtype}')
             # Free memory
             grab_result.Release()
+            if image is not None and image.size > 0:
+                if 'PixelFormat' in self.initial_params:
+                    pixel_format = self.initial_params['PixelFormat']
+                    if "Bayer" in pixel_format:
+                        image = cv2.cvtColor(image, cv2.COLOR_BAYER_RG2RGB)
             return image
         return None
 
@@ -309,14 +402,17 @@ class BaslerCamera:
         """
         if param in self.list_params:
             node = self.camera_nodemap.GetNode(param)
-
-            if node.GetAccessMode() == genicam.RW:
-                if hasattr(node, "SetValue"):
-                    node.SetValue(value)
-                    return True
+            try:
+                if hasattr(node, "GetAccessMode") and node.GetAccessMode() == genicam.RW:
+                    if hasattr(node, "SetValue"):
+                        node.SetValue(value)
+                        return True
+                    else:
+                        print(f"Node {param} has no SetValue()")
                 else:
-                    return False
-            else:
-                return False
+                    print(f"Node {param} not writable or invalid access mode")
+            except Exception as e:
+                print(f"Error setting parameter {param}: {e}")
         else:
-            return False
+            print(f"Parameter {param} not found in list_params")
+        return False

@@ -37,6 +37,7 @@ class My_Application(QApplication):
         self.manager = MainManager(self)
         self.window = self.manager.main_window
         self.manager.init_controller()
+        #self.manager.variables["camera"].init_camera_parameters('./config/camera.ini')
 
     def show(self):
         # Display Main Window

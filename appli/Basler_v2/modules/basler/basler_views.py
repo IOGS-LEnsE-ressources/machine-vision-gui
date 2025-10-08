@@ -2,12 +2,14 @@ import sys
 
 import cv2
 import numpy as np
+from PyQt6.QtGui import QImage, QPixmap, QFont, QColor
 from lensepy import translate
 from lensepy.css import *
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal, QRectF
 from PyQt6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QFileDialog, QMessageBox,
-    QWidget, QLabel, QPushButton, QFrame, QCheckBox, QSizePolicy, QComboBox, QApplication
+    QVBoxLayout, QHBoxLayout,
+    QWidget, QLabel, QFrame, QCheckBox, QComboBox, QApplication, QGraphicsView,
+    QGraphicsScene, QGraphicsPixmapItem, QGraphicsTextItem
 )
 from lensepy.images.conversion import resize_image_ratio
 import pyqtgraph as pg
@@ -150,21 +152,23 @@ class HistogramWidget(QWidget):
             box_layout.addWidget(chk)
         layout.addLayout(box_layout)
 
-    def set_image(self, img: np.ndarray):
+    def set_image(self, img: np.ndarray, checked: bool = True):
         """Définit l'image (numpy array, 2D pour gris ou 3D pour RGB)."""
         self.image = img
-        if self.image.ndim == 2:
-            # Grayscale image
-            for chk in [self.chk_r, self.chk_g, self.chk_b]:
-                chk.setEnabled(False)
-                chk.setChecked(False)
-            self.chk_l.setEnabled(False)
-            self.chk_l.setChecked(True)
-        elif self.image.ndim == 3:
-            # RGB image
-            for chk in [self.chk_r, self.chk_g, self.chk_b, self.chk_l]:
-                chk.setChecked(True)
-                chk.setEnabled(True)
+        print(f'SHape Image = {self.image.shape} / {self.image.dtype}')
+        if checked:
+            if self.image.ndim == 2:
+                # Grayscale image
+                for chk in [self.chk_r, self.chk_g, self.chk_b]:
+                    chk.setEnabled(False)
+                    chk.setChecked(False)
+                self.chk_l.setEnabled(False)
+                self.chk_l.setChecked(True)
+            elif self.image.ndim == 3:
+                # RGB image
+                for chk in [self.chk_r, self.chk_g, self.chk_b, self.chk_l]:
+                    chk.setChecked(True)
+                    chk.setEnabled(True)
         self.refresh_chart()
 
     def set_bits_depth(self, depth: int):
@@ -325,4 +329,63 @@ class LabelWidget(QWidget):
     def set_value(self, value):
         """Update widget value."""
         self.value.setText(value)
+
+
+class ImageDisplayWidget(QWidget):
+    def __init__(self, parent=None, bg_color='white', zoom: bool = True):
+        super().__init__(parent)
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+
+        self.scene = QGraphicsScene(self)
+        self.graphics_view = QGraphicsView(self.scene)
+        self.layout.addWidget(self.graphics_view)
+        self.bits_depth = 8
+        self.scene.setBackgroundBrush(QColor(bg_color))
+
+    def set_image_from_array(self, pixels_array: np.ndarray, text: str = ''):
+        self.scene.clear()
+        pixels = pixels_array.copy()
+        if pixels is None:
+            return
+        # Detect if RGB or Grayscale
+        if pixels.ndim == 2:
+            # Convert image to 8 bits for display
+            if self.bits_depth < 8:
+                image_8bit = pixels.astype(np.uint8)
+            else:
+                pow_two = int(self.bits_depth - 8)
+                image_8bit = (pixels >> pow_two).astype(np.uint8)
+            # Mono
+            h, w = image_8bit.shape
+            qimage_format = QImage.Format.Format_Grayscale8
+        elif pixels.ndim == 3:
+            image_8bit = pixels.astype(np.uint8)
+            h, w, c = image_8bit.shape
+            if c == 3:
+                qimage_format = QImage.Format.Format_RGB888
+            else:
+                raise ValueError(f"Unsupported channel number for RGB: {c}")
+        else:
+            raise ValueError(f"Unsupported image shape: {image_8bit.shape}")
+
+        # Create QImage
+        qimage = QImage(image_8bit.data, w, h, image_8bit.strides[0], qimage_format)
+        pixmap = QPixmap.fromImage(qimage)
+        pixmap_item = QGraphicsPixmapItem(pixmap)
+        self.scene.addItem(pixmap_item)
+        self.graphics_view.fitInView(self.scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+
+        # Display text if required.
+        if text:
+            font = QFont('Arial', 12)
+            text_item = QGraphicsTextItem(text)
+            text_item.setFont(font)
+            text_item.setDefaultTextColor(QColor(0, 0, 0))
+            text_item.setPos(0, pixmap.height() - 20)
+            self.scene.addItem(text_item)
+
+    def set_bits_depth(self, value_depth: int):
+        """Set the bits depth of the camera pixels."""
+        self.bits_depth = value_depth
 
