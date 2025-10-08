@@ -23,7 +23,7 @@ class LEnsEView(QWidget):
 
         # Layout principal de la partie droite
         self.layout = QVBoxLayout()
-        right_layout.addLayout(top_layout, 1)
-        right_layout.addLayout(bottom_layout, 1)
+        self.layout.addLayout(top_layout, 1)
+        self.layout.addLayout(bottom_layout, 1)
 
         self.lense_label = QLabel('Lense')

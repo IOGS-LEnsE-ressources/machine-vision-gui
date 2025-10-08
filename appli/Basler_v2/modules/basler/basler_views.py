@@ -57,7 +57,8 @@ class CameraInfosWidget(QWidget):
         """
         Action performed when color mode is changed.
         """
-        print(f'CM_changed : {event}')
+        self.color_mode_changed.emit(event)
+
 
     def update_infos(self):
         """
@@ -261,14 +262,17 @@ class SelectWidget(QWidget):
         """
         Action performed when the colormode choice changed.
         """
-        index = self.combo_box.currentIndex()
-        value = self.combo_box.currentText()
-        print(index)
+        index = self.get_selected_index()
+        value = self.get_selected_value()
         self.choice_selected.emit(str(index))
 
     def get_selected_value(self) -> str:
         """Get the selected value."""
         return self.combo_box.currentText()
+
+    def get_selected_index(self) -> str:
+        """Get the index of the selection."""
+        return self.combo_box.currentIndex()
 
     def set_values(self, values: list[str]):
         """Update the list of values.

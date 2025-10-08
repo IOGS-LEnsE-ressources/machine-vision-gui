@@ -43,6 +43,8 @@ class BaslerController(TemplateController):
         self.init_camera()
         self.top_right = CameraInfosWidget(self)
         self.top_right.update_infos()
+        # Signals
+        self.top_right.color_mode_changed.connect(self.handle_color_mode_changed)
         # Start thread
         self.start_live()
 
@@ -97,6 +99,11 @@ class BaslerController(TemplateController):
         """
         self.top_left.set_image_from_array(image)
 
+    def handle_color_mode_changed(self, event):
+        """
+        Action performed when the color mode changed.
+        """
+        print(f'CM_CHANGED = {event}')
 
 
 class ImageLive(QObject):
