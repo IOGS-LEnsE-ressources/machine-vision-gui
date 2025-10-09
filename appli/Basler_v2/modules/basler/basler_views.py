@@ -152,20 +152,40 @@ class HistogramWidget(QWidget):
             box_layout.addWidget(chk)
         layout.addLayout(box_layout)
 
+    def reinit_checkbox(self, mode: str):
+        """
+        Update checkbox visibility.
+        :param mode:    'RGB' or 'Gray'
+        """
+        # Detect if RGB or Grayscale
+        if mode == 'Gray':
+            for chk in [self.chk_r, self.chk_g, self.chk_b]:
+                chk.setEnabled(False)
+                chk.setChecked(False)
+            self.chk_l.setEnabled(False)
+            self.chk_l.setChecked(True)
+        elif mode == 'RGB':
+            for chk in [self.chk_r, self.chk_g, self.chk_b, self.chk_l]:
+                chk.setChecked(True)
+                chk.setEnabled(True)
+
+
     def set_image(self, img: np.ndarray, checked: bool = True):
         """Définit l'image (numpy array, 2D pour gris ou 3D pour RGB)."""
-        self.image = img
-        print(f'SHape Image = {self.image.shape} / {self.image.dtype}')
-        if checked:
-            if self.image.ndim == 2:
-                # Grayscale image
+        self.image = img.copy()
+        # Detect if RGB or Grayscale
+        if img.ndim == 2:
+            # Grayscale image
+            # Update checkboxes
+            if checked:
                 for chk in [self.chk_r, self.chk_g, self.chk_b]:
                     chk.setEnabled(False)
                     chk.setChecked(False)
                 self.chk_l.setEnabled(False)
                 self.chk_l.setChecked(True)
-            elif self.image.ndim == 3:
-                # RGB image
+        else:
+            # RGB image
+            if checked:
                 for chk in [self.chk_r, self.chk_g, self.chk_b, self.chk_l]:
                     chk.setChecked(True)
                     chk.setEnabled(True)
@@ -207,14 +227,14 @@ class HistogramWidget(QWidget):
         if image.ndim == 2:
             # Grayscale image
             if self.chk_l.isChecked():
-                hist, bins = np.histogram(image, bins=256, range=hist_range)
+                hist, bins = np.histogram(image, bins=max_val+1, range=hist_range)
                 self.bar_l.setOpts(x=bins[:-1], height=hist, width=1)
                 self.plot.addItem(self.bar_l)
 
         elif image.ndim == 3 and image.shape[2] >= 3:
             # RGB image
             if self.chk_r.isChecked():
-                hist_r, bins = np.histogram(image[:, :, 0], bins=256, range=hist_range)
+                hist_r, bins = np.histogram(image[:, :, 0], bins=max_val+1, range=hist_range)
                 self.bar_r.setOpts(x=bins[:-1], height=hist_r, width=1)
                 self.plot.addItem(self.bar_r)
 
