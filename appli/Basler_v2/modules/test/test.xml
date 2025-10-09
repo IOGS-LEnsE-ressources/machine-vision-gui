@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<appli>
-    <name>test</name>
-    <requirements>images,fft_images</requirements>
-    <req_var>image,fft_image</req_var>
-    <display>MODE2</display>
-    <controller>TestController</controller>
-    <location>test_controller</location>
-</appli>
