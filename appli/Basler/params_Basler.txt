@@ -7,3 +7,5 @@ BslAcquisitionStopMode;CompleteExposure;S
 GainAuto;Off;S
 TriggerSelector;FrameBurstStart;S
 TriggerMode;Off;S
+
+
