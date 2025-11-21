@@ -85,7 +85,7 @@ slider_sampling;Sous-échantillonnage
 # Outils Images
 # ------------------
 button_tools;Outils pour Images
-button_tools_slice;Coupe dans l'image
+button_tools_slice;Profil dans l'image
 button_tools_vignettage;Vignettage
 vertical_slice;Profil vertical (position)
 horizontal_slice;Profil horizontal (position)
