@@ -277,7 +277,7 @@ class CameraSettingsWidget(QWidget):
                                                                 value=expo_time)
         exposure_time = self.camera.get_exposure()
         self.slider_exposure_time.set_value(exposure_time)
-        bl = self.camera.get_black_level()
+        bl = 10 # self.camera.get_black_level()
         self.slider_black_level.set_value(bl)
 
 
