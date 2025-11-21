@@ -32,6 +32,15 @@ button_open_camera;Sélectionner une caméra
 button_open_camera_indus;Caméra industrielle
 button_open_webcam;Webcam
 dialog_open_image;Ouverture d'une image depuis un fichier...
+title_camera_infos_view;Informations sur la caméra
+label_title_camera_name;Type de caméra
+label_title_camera_id;Numéro Série
+label_title_camera_size;Largeur / Hauteur
+label_title_camera_exposure;Temps exposition
+label_title_camera_fps;Taux rafraichissement
+title_camera_settings;Paramètres de la caméra
+name_slider_exposure_time;Temps d'exposition
+name_slider_black_level;Black level
 #
 # ------------------
 # AOI
@@ -78,6 +87,8 @@ slider_sampling;Sous-échantillonnage
 button_tools;Outils pour Images
 button_tools_slice;Coupe dans l'image
 button_tools_vignettage;Vignettage
+vertical_slice;Profil vertical (position)
+horizontal_slice;Profil horizontal (position)
 #
 # ------------------
 # PreTraitement
